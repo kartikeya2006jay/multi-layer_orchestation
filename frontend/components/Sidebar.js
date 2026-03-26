@@ -4,11 +4,13 @@ import { usePathname } from 'next/navigation';
 import { useWebSocket } from '@/lib/websocket';
 
 const navItems = [
-    { href: '/', label: 'Dashboard', icon: '📊' },
+    { href: '/', label: 'Overview', icon: '📊' },
     { href: '/agents', label: 'Agents', icon: '🤖' },
     { href: '/tasks', label: 'Tasks', icon: '⚡' },
     { href: '/workflows', label: 'Workflows', icon: '🔄' },
     { href: '/oversight', label: 'Oversight', icon: '👁️' },
+    { href: '/analytics', label: 'Analytics', icon: '📈' },
+    { href: '/billing', label: 'Billing', icon: '💳' },
     { href: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
@@ -33,7 +35,7 @@ export default function Sidebar() {
         }}>
             {/* Logo */}
             <div style={{
-                padding: '28px 24px 24px',
+                padding: '28px 24px 20px',
                 borderBottom: '1px solid var(--border-glass)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -58,6 +60,25 @@ export default function Sidebar() {
                             AI Agent Platform
                         </div>
                     </div>
+                </div>
+
+                {/* Workspace Switcher Placeholder */}
+                <div style={{
+                    marginTop: '20px',
+                    padding: '8px 12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid var(--border-glass)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-purple)' }} />
+                        <span style={{ fontSize: '12px', fontWeight: '500' }}>Standard Workspace</span>
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>▼</span>
                 </div>
             </div>
 

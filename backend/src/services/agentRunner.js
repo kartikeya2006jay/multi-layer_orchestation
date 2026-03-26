@@ -24,7 +24,10 @@ export async function runAgentTask(taskId) {
         db.prepare(`UPDATE agents SET status = 'running', updated_at = datetime('now') WHERE id = ?`).run(agent.id);
     }
 
-    addLog(taskId, 'info', `Agent "${agent?.name || 'Default'}" started processing task`);
+    addLog(taskId, 'info', `Agent "${agent?.name || 'Default'}" started processing task`, {
+        planner_version: task.planner_version,
+        prompt_version: task.prompt_version
+    });
     broadcast({ type: 'task:update', data: { id: taskId, status: 'running', progress: 10 } });
 
     try {
@@ -39,9 +42,20 @@ export async function runAgentTask(taskId) {
             maxTokens,
         });
 
+        // Log usage
+        if (result.usage) {
+            db.prepare(`
+                INSERT INTO usage_logs (workspace_id, task_id, tokens_used, cost)
+                VALUES (?, ?, ?, ?)
+            `).run(task.workspace_id, taskId, result.usage.total_tokens, (result.usage.total_tokens * 0.000002));
+        }
+
         db.prepare('UPDATE tasks SET progress = 70, updated_at = datetime(\'now\') WHERE id = ?').run(taskId);
         broadcast({ type: 'task:update', data: { id: taskId, status: 'running', progress: 70 } });
-        addLog(taskId, 'info', `AI responded (${result.usage?.total_tokens || 0} tokens used)`);
+        addLog(taskId, 'info', `AI responded (${result.usage?.total_tokens || 0} tokens used)`, {
+            finish_reason: result.finishReason,
+            usage: result.usage
+        });
 
         // Estimate confidence based on finish reason and output length
         const confidence = estimateConfidence(result);
@@ -50,16 +64,17 @@ export async function runAgentTask(taskId) {
         if (confidence < oversightThreshold) {
             // Requires human approval
             db.prepare(`
-        UPDATE tasks SET status = 'awaiting_approval', output = ?, confidence = ?, progress = 90, updated_at = datetime('now')
+        UPDATE tasks SET status = 'waiting_for_approval', output = ?, confidence = ?, progress = 90, updated_at = datetime('now')
         WHERE id = ?
       `).run(result.content, confidence, taskId);
 
             const oversightId = uuidv4();
             db.prepare(`
-        INSERT INTO oversight_queue (id, task_id, agent_id, type, reason, context, status)
-        VALUES (?, ?, ?, 'approval', ?, ?, 'pending')
+        INSERT INTO oversight_queue (id, workspace_id, task_id, agent_id, type, reason, context, status)
+        VALUES (?, ?, ?, ?, 'approval', ?, ?, 'pending')
       `).run(
                 oversightId,
+                task.workspace_id,
                 taskId,
                 agent?.id || null,
                 `Low confidence (${(confidence * 100).toFixed(0)}%) — requires human review`,
@@ -67,7 +82,7 @@ export async function runAgentTask(taskId) {
             );
 
             addLog(taskId, 'warn', `Low confidence (${(confidence * 100).toFixed(0)}%) — sent to oversight queue`);
-            broadcast({ type: 'task:update', data: { id: taskId, status: 'awaiting_approval', progress: 90, confidence } });
+            broadcast({ type: 'task:update', data: { id: taskId, status: 'waiting_for_approval', progress: 90, confidence } });
             broadcast({ type: 'oversight:new', data: { id: oversightId, taskId } });
         } else {
             // Complete directly
@@ -113,7 +128,12 @@ function estimateConfidence(result) {
     return Math.max(0, Math.min(1, confidence));
 }
 
-function addLog(taskId, level, message) {
+function addLog(taskId, level, message, metadata = {}) {
     const db = getDb();
-    db.prepare('INSERT INTO task_logs (task_id, level, message) VALUES (?, ?, ?)').run(taskId, level, message);
+    db.prepare('INSERT INTO task_logs (task_id, level, message, metadata) VALUES (?, ?, ?, ?)').run(
+        taskId,
+        level,
+        message,
+        JSON.stringify(metadata)
+    );
 }

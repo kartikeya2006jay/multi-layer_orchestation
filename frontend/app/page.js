@@ -107,15 +107,15 @@ export default function DashboardPage() {
                     <div className="metric-value">{stats.tasks.completed}</div>
                     <div className="metric-label">Completed Tasks</div>
                 </div>
-                <div className="glass-card metric-card metric-amber animate-in" style={{ animationDelay: '150ms' }}>
+                <div className="glass-card metric-card metric-cyan animate-in" style={{ animationDelay: '150ms' }}>
+                    <div className="metric-icon">💰</div>
+                    <div className="metric-value">${stats.system.totalCost || '0.00'}</div>
+                    <div className="metric-label">Token Usage Cost</div>
+                </div>
+                <div className="glass-card metric-card metric-amber animate-in" style={{ animationDelay: '200ms' }}>
                     <div className="metric-icon">👁️</div>
                     <div className="metric-value">{stats.oversight.pending}</div>
                     <div className="metric-label">Pending Reviews</div>
-                </div>
-                <div className="glass-card metric-card metric-cyan animate-in" style={{ animationDelay: '200ms' }}>
-                    <div className="metric-icon">📡</div>
-                    <div className="metric-value">{stats.system.connectedClients}</div>
-                    <div className="metric-label">Live Connections</div>
                 </div>
                 <div className="glass-card metric-card metric-red animate-in" style={{ animationDelay: '250ms' }}>
                     <div className="metric-icon">❌</div>

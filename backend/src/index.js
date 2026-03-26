@@ -3,6 +3,8 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
 import { initializeSchema } from './db/schema.js';
+import authRoutes from './routes/auth.js';
+import billingRoutes from './routes/billing.js';
 import agentsRoutes from './routes/agents.js';
 import tasksRoutes from './routes/tasks.js';
 import workflowsRoutes from './routes/workflows.js';
@@ -29,6 +31,8 @@ async function start() {
     initializeSchema();
 
     // Register routes
+    await fastify.register(authRoutes);
+    await fastify.register(billingRoutes);
     await fastify.register(agentsRoutes);
     await fastify.register(tasksRoutes);
     await fastify.register(workflowsRoutes);

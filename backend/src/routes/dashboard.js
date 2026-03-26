@@ -17,12 +17,15 @@ export default async function dashboardRoutes(fastify) {
         const runningTasks = db.prepare("SELECT COUNT(*) as count FROM tasks WHERE status = 'running'").get().count;
         const completedTasks = db.prepare("SELECT COUNT(*) as count FROM tasks WHERE status = 'completed'").get().count;
         const failedTasks = db.prepare("SELECT COUNT(*) as count FROM tasks WHERE status = 'failed'").get().count;
-        const awaitingApproval = db.prepare("SELECT COUNT(*) as count FROM tasks WHERE status = 'awaiting_approval'").get().count;
+        const waitingForApproval = db.prepare("SELECT COUNT(*) as count FROM tasks WHERE status = 'waiting_for_approval'").get().count;
 
         const totalWorkflows = db.prepare('SELECT COUNT(*) as count FROM workflows').get().count;
         const runningWorkflows = db.prepare("SELECT COUNT(*) as count FROM workflows WHERE status = 'running'").get().count;
 
         const pendingOversight = db.prepare("SELECT COUNT(*) as count FROM oversight_queue WHERE status = 'pending'").get().count;
+
+        const totalCostResult = db.prepare('SELECT SUM(cost) as total FROM usage_logs').get();
+        const totalCost = totalCostResult?.total || 0;
 
         const recentTasks = db.prepare(`
       SELECT t.id, t.title, t.status, t.progress, t.confidence, t.created_at, a.name as agent_name
@@ -36,7 +39,7 @@ export default async function dashboardRoutes(fastify) {
 
         return {
             agents: { total: totalAgents, active: activeAgents, idle: idleAgents, error: errorAgents },
-            tasks: { total: totalTasks, pending: pendingTasks, running: runningTasks, completed: completedTasks, failed: failedTasks, awaitingApproval },
+            tasks: { total: totalTasks, pending: pendingTasks, running: runningTasks, completed: completedTasks, failed: failedTasks, awaitingApproval: waitingForApproval },
             workflows: { total: totalWorkflows, running: runningWorkflows },
             oversight: { pending: pendingOversight },
             system: {
@@ -44,6 +47,7 @@ export default async function dashboardRoutes(fastify) {
                 runningProcesses: getRunningTaskCount(),
                 openaiConfigured: isConfigured(),
                 avgConfidence: avgConfidence?.avg || 0,
+                totalCost: totalCost.toFixed(2),
             },
             recentTasks,
             recentAgents,
