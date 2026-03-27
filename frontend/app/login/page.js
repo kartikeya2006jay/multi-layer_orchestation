@@ -39,27 +39,41 @@ export default function LoginPage() {
                         width: '72px',
                         height: '72px',
                         borderRadius: 'var(--radius-lg)',
-                        background: 'var(--gradient-blue)',
+                        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15))',
+                        border: '1px solid rgba(59, 130, 246, 0.25)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '36px',
                         margin: '0 auto 20px',
-                        boxShadow: 'var(--shadow-glow-blue)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)'
+                        boxShadow: '0 0 40px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
                     }}>
-                        🧠
+                        <svg width="38" height="38" viewBox="0 0 32 32" fill="none">
+                            <circle cx="16" cy="16" r="14" stroke="url(#login-grad)" strokeWidth="2" opacity="0.3" />
+                            <circle cx="16" cy="16" r="9" stroke="url(#login-grad)" strokeWidth="2" />
+                            <circle cx="16" cy="16" r="4" fill="url(#login-grad)" />
+                            <line x1="16" y1="2" x2="16" y2="8" stroke="url(#login-grad)" strokeWidth="1.5" strokeLinecap="round" />
+                            <line x1="16" y1="24" x2="16" y2="30" stroke="url(#login-grad)" strokeWidth="1.5" strokeLinecap="round" />
+                            <line x1="2" y1="16" x2="8" y2="16" stroke="url(#login-grad)" strokeWidth="1.5" strokeLinecap="round" />
+                            <line x1="24" y1="16" x2="30" y2="16" stroke="url(#login-grad)" strokeWidth="1.5" strokeLinecap="round" />
+                            <defs>
+                                <linearGradient id="login-grad" x1="0" y1="0" x2="32" y2="32">
+                                    <stop offset="0%" stopColor="#3b82f6" />
+                                    <stop offset="100%" stopColor="#8b5cf6" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
                     </div>
                     <h2 style={{
                         fontSize: '28px',
                         fontWeight: 800,
                         letterSpacing: '-1px',
-                        background: 'linear-gradient(135deg, #fff 0%, #9499b3 100%)',
+                        background: 'linear-gradient(135deg, #fff 30%, #8b5cf6 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent'
                     }}>Welcome Back</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '15px' }}>Access your orchestration command center</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '14px', letterSpacing: '0.2px' }}>Access your neural orchestration command center</p>
                 </div>
+
 
                 {error && (
                     <div style={{
