@@ -12,6 +12,7 @@ import workflowsRoutes from './routes/workflows.js';
 import oversightRoutes from './routes/oversight.js';
 import dashboardRoutes from './routes/dashboard.js';
 import settingsRoutes from './routes/settings.js';
+import aiRoutes from './routes/ai.js';
 import wsRoutes from './routes/ws.js';
 
 const PORT = parseInt(process.env.PORT || '3001');
@@ -51,6 +52,7 @@ async function start() {
     await fastify.register(oversightRoutes);
     await fastify.register(dashboardRoutes);
     await fastify.register(settingsRoutes);
+    await fastify.register(aiRoutes);
     await fastify.register(wsRoutes);
 
     fastify.get('/', async () => {

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import TaskGraph from '@/components/TaskGraph';
-import { getTasks, launchTask, cancelTask, getTaskLogs, getAgents } from '@/lib/api';
+import { getTasks, launchTask, cancelTask, getTaskLogs, getAgents, suggestInput } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
 
 export default function TasksPage() {
@@ -47,6 +47,17 @@ export default function TasksPage() {
             setForm({ title: '', description: '', input: '', agentId: '', priority: 'medium' });
             loadTasks();
         } catch (e) { alert(e.message); }
+    };
+
+    const [suggesting, setSuggesting] = useState(false);
+    const handleSuggest = async () => {
+        if (!form.title) return alert('Enter a title first');
+        setSuggesting(true);
+        try {
+            const { suggestion } = await suggestInput(form.title, form.description);
+            setForm({ ...form, input: suggestion });
+        } catch (e) { console.error(e); }
+        finally { setSuggesting(false); }
     };
 
     const handleCancel = async (id) => {
@@ -172,9 +183,20 @@ export default function TasksPage() {
                                     placeholder="Brief description" />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Input / Instructions</label>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <label className="form-label" style={{ margin: 0 }}>Input / Instructions</label>
+                                    <button
+                                        type="button"
+                                        className="btn btn-ghost btn-sm"
+                                        onClick={handleSuggest}
+                                        disabled={suggesting || !form.title}
+                                        style={{ color: 'var(--accent-blue)', fontWeight: 700 }}
+                                    >
+                                        {suggesting ? '✨ Thinking...' : '✨ Auto-Fill Instructions'}
+                                    </button>
+                                </div>
                                 <textarea className="form-textarea" value={form.input} onChange={e => setForm({ ...form, input: e.target.value })}
-                                    placeholder="Detailed instructions for the AI agent..." />
+                                    placeholder="Detailed instructions for the AI agent..." style={{ minHeight: '120px' }} />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">

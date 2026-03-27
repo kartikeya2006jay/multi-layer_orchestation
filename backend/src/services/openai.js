@@ -3,7 +3,7 @@ import { getDb } from '../db/connection.js';
 
 const clients = new Map();
 
-function getClient(workspaceId) {
+export function getOpenAIClient(workspaceId) {
     // Check if we have a client for this workspace
     if (workspaceId && clients.has(workspaceId)) return clients.get(workspaceId);
 
@@ -29,7 +29,7 @@ function getClient(workspaceId) {
 
 export async function chat(systemPrompt, userMessage, options = {}) {
     const { workspaceId, ...rest } = options;
-    const openai = getClient(workspaceId);
+    const openai = getOpenAIClient(workspaceId);
     const model = rest.model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
     const maxTokens = rest.maxTokens || 4096;
     const temperature = rest.temperature ?? 0.7;
@@ -103,7 +103,7 @@ Return a JSON object with:
 
 export function isConfigured(workspaceId) {
     try {
-        getClient(workspaceId);
+        getOpenAIClient(workspaceId);
         return true;
     } catch {
         return false;
