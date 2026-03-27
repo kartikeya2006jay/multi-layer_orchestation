@@ -301,21 +301,23 @@ export default function TasksPage() {
                                         <textarea className="tech-textarea" value={form.input} onChange={e => setForm({ ...form, input: e.target.value })}
                                             placeholder="Enter detailed execution instructions..." />
                                     </div>
-                                    <div className="form-item">
-                                        <label>OPERATIVE_ASSIGNMENT</label>
-                                        <select className="tech-select" value={form.agentId} onChange={e => setForm({ ...form, agentId: e.target.value })}>
-                                            <option value="">AUTO_KERNEL_SELECT</option>
-                                            {agents.map(a => <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="form-item">
-                                        <label>THREAT_PRIORITY_LVL</label>
-                                        <select className="tech-select" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}>
-                                            <option value="low">LOW</option>
-                                            <option value="medium">MEDIUM</option>
-                                            <option value="high">HIGH</option>
-                                            <option value="critical">CRITICAL_V1</option>
-                                        </select>
+                                    <div className="form-row-2">
+                                        <div className="form-item">
+                                            <label>OPERATIVE_ASSIGNMENT</label>
+                                            <select className="tech-select" value={form.agentId} onChange={e => setForm({ ...form, agentId: e.target.value })}>
+                                                <option value="">AUTO_KERNEL_SELECT</option>
+                                                {agents.map(a => <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="form-item">
+                                            <label>THREAT_PRIORITY_LVL</label>
+                                            <select className="tech-select" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}>
+                                                <option value="low">LOW</option>
+                                                <option value="medium">MEDIUM</option>
+                                                <option value="high">HIGH</option>
+                                                <option value="critical">CRITICAL_V1</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </form>
@@ -503,7 +505,11 @@ export default function TasksPage() {
                 .flow-graph-wrapper::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; }
 
                 /* ===== MISSION INITIATOR MODAL ===== */
-                .technical-init-modal { max-width: 660px; max-height: calc(100vh - 120px); }
+                .technical-init-modal { max-width: 760px; max-height: calc(100vh - 120px); }
+                .modal-body { padding: 32px; }
+                .form-grid { display: flex; flex-direction: column; gap: 24px; }
+                .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+                .form-item label { display: block; font-size: 10px; font-weight: 950; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
                 .technical-form { padding: 28px 28px 8px; }
                 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
                 .form-item.full { grid-column: span 2; }

@@ -441,56 +441,74 @@ export default function DashboardPage() {
                             <p style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>No active neural profiles found.</p>
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                             {stats.recentAgents.map(agent => (
                                 <div key={agent.id} className="hover-glass" style={{
                                     padding: '16px',
-                                    borderRadius: 'var(--radius-md)',
+                                    borderRadius: '14px',
                                     background: 'rgba(255,255,255,0.02)',
-                                    border: '1px solid var(--border-glass)',
-                                    display: 'flex', alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    transition: 'all var(--transition-base)',
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    display: 'flex', flexDirection: 'column',
+                                    gap: '12px',
+                                    transition: 'all 0.3s ease',
+                                    position: 'relative',
+                                    overflow: 'hidden'
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                        <div style={{
-                                            width: '40px', height: '40px',
-                                            borderRadius: '12px',
-                                            background: agent.status === 'active' ? 'var(--accent-purple-glow)' : 'var(--bg-glass)',
-                                            border: agent.status === 'active' ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid var(--border-glass)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            color: agent.status === 'active' ? 'var(--accent-purple)' : 'var(--text-muted)',
-                                            position: 'relative'
-                                        }}>
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
-                                                <path d="M12 12L2.1 12.1" />
-                                                <path d="M12 12l9.9 -0.1" />
-                                                <path d="M12 12l0 9.9" />
-                                            </svg>
-                                            {agent.status === 'active' && (
-                                                <span style={{
-                                                    position: 'absolute', top: '-2px', right: '-2px',
-                                                    width: '8px', height: '8px', borderRadius: '50%',
-                                                    background: 'var(--accent-purple)',
-                                                    boxShadow: '0 0 8px var(--accent-purple)'
-                                                }} />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{agent.name}</div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                                                <span style={{ opacity: 0.8 }}>{agent.model || 'Standard'}</span>
-                                                <span style={{ opacity: 0.3 }}>·</span>
-                                                <span style={{ color: agent.status === 'active' ? 'var(--accent-purple)' : 'var(--text-muted)' }}>
-                                                    {agent.status === 'active' ? 'Engaged' : 'Standby'}
-                                                </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{
+                                                width: '32px', height: '32px',
+                                                borderRadius: '8px',
+                                                background: agent.status === 'active' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.03)',
+                                                border: `1px solid ${agent.status === 'active' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)'}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                color: agent.status === 'active' ? 'var(--accent-purple)' : 'var(--text-muted)'
+                                            }}>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+                                                    <path d="M12 12L2.1 12.1" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>{agent.name}</div>
+                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>{agent.model || 'Standard'}</div>
                                             </div>
                                         </div>
+                                        <div style={{
+                                            padding: '3px 8px', borderRadius: '4px',
+                                            fontSize: '9px', fontWeight: 950,
+                                            background: agent.status === 'active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.04)',
+                                            color: agent.status === 'active' ? 'var(--accent-green)' : 'var(--text-muted)',
+                                            border: `1px solid ${agent.status === 'active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)'}`,
+                                            letterSpacing: '1px'
+                                        }}>
+                                            {agent.status === 'active' ? 'ENGAGED' : 'STANDBY'}
+                                        </div>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>LATENCY</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 700 }}>{Math.floor(Math.random() * 200) + 100}ms</div>
+
+                                    <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(255,255,255,0.05), transparent)' }} />
+
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <div className="sync-bar" style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '10px' }}>
+                                                {[1, 2, 3, 4].map(i => (
+                                                    <div key={i} style={{
+                                                        width: '2px',
+                                                        height: `${25 * i}%`,
+                                                        background: i <= 3 ? 'var(--accent-purple)' : 'rgba(255,255,255,0.1)',
+                                                        borderRadius: '1px',
+                                                        opacity: i <= 3 ? 0.8 : 0.3
+                                                    }} />
+                                                ))}
+                                            </div>
+                                            <span style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>NEURAL_SYNC</span>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                                                {Math.floor(Math.random() * 200) + 100}ms
+                                            </span>
+                                            <small style={{ fontSize: '8px', color: 'var(--text-muted)', marginLeft: '4px', fontWeight: 900 }}>LAT</small>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
