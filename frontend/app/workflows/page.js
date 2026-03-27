@@ -55,6 +55,26 @@ export default function WorkflowsPage() {
 
     useEffect(() => { loadWorkflows(); loadAgents(); }, [loadWorkflows, loadAgents]);
 
+    // Dedup tracking for ledger entries
+    const lastEntryRef = useRef({ message: '', time: 0 });
+    const stepCounterRef = useRef(0);
+    const completedStepsRef = useRef(0);
+
+    const addLedgerEntry = useCallback((timestamp, badge, message, type) => {
+        const now = Date.now();
+        // Deduplicate: skip if same message within 300ms
+        if (lastEntryRef.current.message === message && now - lastEntryRef.current.time < 300) {
+            return;
+        }
+        lastEntryRef.current = { message, time: now };
+        setLedgerEntries(prev => [...prev, { timestamp, badge, message, type, id: now + Math.random() }]);
+        setTimeout(() => {
+            if (ledgerRef.current) {
+                ledgerRef.current.scrollTop = ledgerRef.current.scrollHeight;
+            }
+        }, 50);
+    }, []);
+
     // WebSocket subscriptions for live execution stream
     useEffect(() => {
         const unsub1 = subscribe('workflow:update', (data) => {
@@ -63,6 +83,8 @@ export default function WorkflowsPage() {
                 const now = new Date();
                 const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
                 if (data.status === 'running') {
+                    stepCounterRef.current = 0;
+                    completedStepsRef.current = 0;
                     addLedgerEntry(ts, 'ORCHESTRATOR', 'Booting execution engine...', 'orchestrator');
                 } else if (data.status === 'completed') {
                     addLedgerEntry(ts, 'ORCHESTRATOR', `Workflow executed internally in ${((Date.now() - (window.__wfStartTime || Date.now())) / 1000).toFixed(1)}s.`, 'orchestrator');
@@ -72,8 +94,12 @@ export default function WorkflowsPage() {
                     addLedgerEntry(ts, 'SYSTEM', `Execution Failed: ${data.error || 'Unknown error'}`, 'error');
                     setIsRunning(false);
                 } else if (data.current_step !== undefined) {
-                    const stepName = canvasNodes[data.current_step]?.title || `Step ${data.current_step + 1}`;
-                    addLedgerEntry(ts, 'ORCHESTRATOR', `Advancing to step: ${stepName}`, 'orchestrator');
+                    const stepIdx = data.current_step;
+                    const stepName = canvasNodes[stepIdx]?.title || `Step ${stepIdx + 1}`;
+                    const stepAdapter = canvasNodes[stepIdx]?.adapter || 'OpenAI';
+                    const stepModel = canvasNodes[stepIdx]?.model || 'gpt-4';
+                    stepCounterRef.current = stepIdx;
+                    addLedgerEntry(ts, 'ORCHESTRATOR', `Advancing to step ${stepIdx + 1}/${canvasNodes.length}: ${stepName}`, 'orchestrator');
                 }
             }
         });
@@ -81,31 +107,28 @@ export default function WorkflowsPage() {
             if (showLedger) {
                 const now = new Date();
                 const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
-                addLedgerEntry(ts, 'DATA PROCESSING STEP', `AGENT INIT: Allocating ${newStep.model || 'gpt-4'} via ${newStep.adapter || 'OpenAI'}...`, 'step');
+                const idx = stepCounterRef.current;
+                const adapter = canvasNodes[idx]?.adapter || 'OpenAI';
+                const model = canvasNodes[idx]?.model || 'gpt-4';
+                addLedgerEntry(ts, 'DATA PROCESSING STEP', `AGENT INIT: Allocating ${model} via ${adapter}...`, 'step');
             }
         });
         const unsub3 = subscribe('task:update', (data) => {
             if (showLedger) {
                 const now = new Date();
                 const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+                const idx = stepCounterRef.current;
+                const model = canvasNodes[idx]?.model || 'gpt-4';
                 if (data.status === 'running') {
-                    addLedgerEntry(ts, 'DATA PROCESSING STEP', `LLM INFERENCE: Actively streaming from ${newStep.model || 'gpt-4'} engine...`, 'inference');
+                    addLedgerEntry(ts, 'LLM INFERENCE', `Actively streaming from ${model} engine...`, 'inference');
                 } else if (data.status === 'completed') {
+                    completedStepsRef.current += 1;
                     addLedgerEntry(ts, 'DATA PROCESSING STEP', `STEP COMPLETED [Verify: 0x${Math.random().toString(16).slice(2, 14)}]`, 'step');
                 }
             }
         });
         return () => { unsub1(); unsub2(); unsub3(); };
-    }, [subscribe, showLedger, canvasNodes, loadWorkflows, newStep]);
-
-    const addLedgerEntry = (timestamp, badge, message, type) => {
-        setLedgerEntries(prev => [...prev, { timestamp, badge, message, type, id: Date.now() + Math.random() }]);
-        setTimeout(() => {
-            if (ledgerRef.current) {
-                ledgerRef.current.scrollTop = ledgerRef.current.scrollHeight;
-            }
-        }, 50);
-    };
+    }, [subscribe, showLedger, canvasNodes, loadWorkflows, addLedgerEntry]);
 
     // Place nodes in a vertical cascade
     const placeNewNode = (stepData) => {
@@ -514,94 +537,162 @@ export default function WorkflowsPage() {
                         {/* Divider */}
                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '0 0 20px' }} />
 
-                        <h4 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px' }}>
-                            Add New Step
-                        </h4>
+                        {/* Add New Step Card */}
+                        <div style={{
+                            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: '14px', padding: '18px', marginBottom: '0',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                                <div style={{
+                                    width: '32px', height: '32px', borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15))',
+                                    border: '1px solid rgba(59,130,246,0.2)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="10" /><path d="M12 8v8" /><path d="M8 12h8" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Add New Step</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Configure node parameters</div>
+                                </div>
+                            </div>
 
-                        {/* Agent Pattern */}
-                        <div style={{ marginBottom: '14px' }}>
-                            <label style={{
-                                display: 'block', fontSize: '10px', fontWeight: 700,
-                                color: 'var(--text-muted)', textTransform: 'uppercase',
-                                letterSpacing: '1.5px', marginBottom: '6px',
-                            }}>Select Agent Pattern</label>
-                            <select value={newStep.agentPattern} onChange={(e) => setNewStep({ ...newStep, agentPattern: e.target.value })} style={{
-                                width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)',
-                                fontSize: '13px', outline: 'none', cursor: 'pointer',
-                            }}>
-                                {AGENT_PATTERNS.map(p => <option key={p} value={p}>{p}</option>)}
-                            </select>
-                        </div>
+                            {/* Step Name */}
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{
+                                    display: 'block', fontSize: '10px', fontWeight: 700,
+                                    color: 'var(--text-muted)', textTransform: 'uppercase',
+                                    letterSpacing: '1.2px', marginBottom: '6px',
+                                }}>Step Name</label>
+                                <input
+                                    value={newStep.title}
+                                    onChange={(e) => setNewStep({ ...newStep, title: e.target.value })}
+                                    placeholder="e.g. Data Processing Step"
+                                    style={{
+                                        width: '100%', background: 'rgba(255,255,255,0.04)',
+                                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
+                                        padding: '9px 12px', color: 'var(--text-primary)',
+                                        fontSize: '13px', outline: 'none',
+                                        transition: 'border-color 0.2s',
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = 'rgba(59,130,246,0.4)'}
+                                    onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                />
+                            </div>
 
-                        {/* Step Type */}
-                        <div style={{ marginBottom: '14px' }}>
-                            <label style={{
-                                display: 'block', fontSize: '10px', fontWeight: 700,
-                                color: 'var(--text-muted)', textTransform: 'uppercase',
-                                letterSpacing: '1.5px', marginBottom: '6px',
-                            }}>Step Type</label>
-                            <select value={newStep.stepType} onChange={(e) => setNewStep({ ...newStep, stepType: e.target.value })} style={{
-                                width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)',
-                                fontSize: '13px', outline: 'none', cursor: 'pointer',
-                            }}>
-                                {STEP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                        </div>
+                            {/* Agent Pattern */}
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{
+                                    display: 'flex', alignItems: 'center', gap: '6px',
+                                    fontSize: '10px', fontWeight: 700,
+                                    color: 'var(--text-muted)', textTransform: 'uppercase',
+                                    letterSpacing: '1.2px', marginBottom: '6px',
+                                }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 8V4H8" /><rect x="4" y="8" width="16" height="12" rx="2" /></svg>
+                                    Select Agent Pattern
+                                </label>
+                                <select value={newStep.agentPattern} onChange={(e) => setNewStep({ ...newStep, agentPattern: e.target.value })} style={{
+                                    width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)',
+                                    fontSize: '13px', outline: 'none', cursor: 'pointer',
+                                    transition: 'border-color 0.2s',
+                                }}>
+                                    {AGENT_PATTERNS.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            </div>
 
-                        {/* Adapter */}
-                        <div style={{ marginBottom: '14px' }}>
-                            <label style={{
-                                display: 'block', fontSize: '10px', fontWeight: 700,
-                                color: 'var(--text-muted)', textTransform: 'uppercase',
-                                letterSpacing: '1.5px', marginBottom: '6px',
-                            }}>Adapter</label>
-                            <select value={newStep.adapter} onChange={(e) => setNewStep({ ...newStep, adapter: e.target.value })} style={{
-                                width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)',
-                                fontSize: '13px', outline: 'none', cursor: 'pointer',
-                            }}>
-                                {ADAPTERS.map(a => <option key={a} value={a}>{a}</option>)}
-                            </select>
-                        </div>
+                            {/* Step Type & Adapter — 2 col */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                                <div>
+                                    <label style={{
+                                        display: 'flex', alignItems: 'center', gap: '5px',
+                                        fontSize: '10px', fontWeight: 700,
+                                        color: 'var(--text-muted)', textTransform: 'uppercase',
+                                        letterSpacing: '1.2px', marginBottom: '6px',
+                                    }}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+                                        Type
+                                    </label>
+                                    <select value={newStep.stepType} onChange={(e) => setNewStep({ ...newStep, stepType: e.target.value })} style={{
+                                        width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '8px', padding: '9px 10px', color: 'var(--text-primary)',
+                                        fontSize: '12px', outline: 'none', cursor: 'pointer',
+                                    }}>
+                                        {STEP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{
+                                        display: 'flex', alignItems: 'center', gap: '5px',
+                                        fontSize: '10px', fontWeight: 700,
+                                        color: 'var(--text-muted)', textTransform: 'uppercase',
+                                        letterSpacing: '1.2px', marginBottom: '6px',
+                                    }}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>
+                                        Adapter
+                                    </label>
+                                    <select value={newStep.adapter} onChange={(e) => setNewStep({ ...newStep, adapter: e.target.value })} style={{
+                                        width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '8px', padding: '9px 10px', color: 'var(--text-primary)',
+                                        fontSize: '12px', outline: 'none', cursor: 'pointer',
+                                    }}>
+                                        {ADAPTERS.map(a => <option key={a} value={a}>{a}</option>)}
+                                    </select>
+                                </div>
+                            </div>
 
-                        {/* Model */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{
-                                display: 'block', fontSize: '10px', fontWeight: 700,
-                                color: 'var(--text-muted)', textTransform: 'uppercase',
-                                letterSpacing: '1.5px', marginBottom: '6px',
-                            }}>Model</label>
-                            <input
-                                value={newStep.model}
-                                onChange={(e) => setNewStep({ ...newStep, model: e.target.value })}
-                                placeholder="gpt-4"
+                            {/* Model */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{
+                                    display: 'flex', alignItems: 'center', gap: '6px',
+                                    fontSize: '10px', fontWeight: 700,
+                                    color: 'var(--text-muted)', textTransform: 'uppercase',
+                                    letterSpacing: '1.2px', marginBottom: '6px',
+                                }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3" /><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" /></svg>
+                                    Model
+                                </label>
+                                <input
+                                    value={newStep.model}
+                                    onChange={(e) => setNewStep({ ...newStep, model: e.target.value })}
+                                    placeholder="gpt-4"
+                                    style={{
+                                        width: '100%', background: 'rgba(255,255,255,0.04)',
+                                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
+                                        padding: '9px 12px', color: 'var(--text-primary)',
+                                        fontSize: '13px', outline: 'none',
+                                        transition: 'border-color 0.2s',
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = 'rgba(59,130,246,0.4)'}
+                                    onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                />
+                            </div>
+
+                            {/* Add Button */}
+                            <button
+                                onClick={handleAddStep}
                                 style={{
-                                    width: '100%', background: 'rgba(255,255,255,0.04)',
-                                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
-                                    padding: '9px 12px', color: 'var(--text-primary)',
-                                    fontSize: '13px', outline: 'none',
+                                    width: '100%', padding: '11px 16px',
+                                    background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)',
+                                    border: 'none', borderRadius: '10px',
+                                    color: 'white', fontSize: '13px', fontWeight: 800,
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', gap: '8px',
+                                    boxShadow: '0 4px 15px rgba(59,130,246,0.3)',
+                                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    letterSpacing: '0.3px',
                                 }}
-                            />
+                                onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 25px rgba(59,130,246,0.45)'; }}
+                                onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 15px rgba(59,130,246,0.3)'; }}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 5v14" /><path d="M5 12h14" />
+                                </svg>
+                                Add Step To Canvas
+                            </button>
                         </div>
-
-                        {/* Add Button */}
-                        <button
-                            onClick={handleAddStep}
-                            style={{
-                                width: '100%', padding: '11px 16px',
-                                background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)',
-                                border: 'none', borderRadius: '8px',
-                                color: 'white', fontSize: '13px', fontWeight: 800,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                                justifyContent: 'center', gap: '8px',
-                                boxShadow: '0 4px 15px rgba(59,130,246,0.3)',
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            + Add Step To Canvas
-                        </button>
 
                         {/* Selected Node Info */}
                         {selectedNode !== null && canvasNodes[selectedNode] && (
