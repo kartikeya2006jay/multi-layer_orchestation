@@ -4,6 +4,7 @@ import TaskGraph from '@/components/TaskGraph';
 import { getTasks, launchTask, cancelTask, getTaskLogs, getAgents, suggestInput } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
 import { formatIST } from '@/lib/time';
+import { exportToCSV } from '@/lib/export';
 
 export default function TasksPage() {
     const [tasks, setTasks] = useState([]);
@@ -156,10 +157,18 @@ export default function TasksPage() {
                         <span>{tasks.filter(t => t.status === 'running').length} <small>LIVE</small></span>
                     </div>
                 </div>
-                <button className="launch-mission-btn" onClick={() => setShowModal(true)}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                    INIT_NEW_MISSION
-                </button>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => exportToCSV(tasks, 'task_manifest.csv')} style={{ height: '42px', padding: '0 20px' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        EXPORT_MANIFEST
+                    </button>
+                    <button className="launch-mission-btn" onClick={() => setShowModal(true)}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                        INIT_NEW_MISSION
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}

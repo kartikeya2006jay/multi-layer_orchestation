@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getBillingUsage, getBillingStatus } from '@/lib/api';
 import { formatISTDate, formatISTDateTime } from '@/lib/time';
+import { exportToCSV } from '@/lib/export';
 
 export default function BillingPage() {
     const [usage, setUsage] = useState(null);
@@ -184,11 +185,17 @@ export default function BillingPage() {
             </div>
 
             <div className="glass-card section-card animate-in" style={{ marginTop: '32px', animationDelay: '0.5s' }}>
-                <div className="card-header-main">
+                <div className="card-header-main" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="header-content">
                         <h3>Transaction Archive</h3>
                         <p>Historical resource consumption and settlement history</p>
                     </div>
+                    <button className="btn btn-ghost btn-sm" onClick={() => exportToCSV(usage.history || [], 'billing_statement.csv')}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        EXPORT_STATEMENT
+                    </button>
                 </div>
                 {usage.history.length === 0 ? (
                     <div className="empty-state">

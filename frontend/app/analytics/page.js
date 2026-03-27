@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getDashboardStats } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
 import { formatIST, formatISTDate } from '@/lib/time';
+import { exportToCSV } from '@/lib/export';
 
 export default function AnalyticsPage() {
     const [stats, setStats] = useState(null);
@@ -122,16 +123,30 @@ export default function AnalyticsPage() {
                     })}
                 </svg>
 
-                <div className="topology-footer">
-                    <div className="topology-legend">
-                        <div className="legend-item"><span className="dot" style={{ background: 'var(--accent-blue)' }}></span><span>SYS_PEAK</span></div>
-                        <div className="legend-item"><span className="dot" style={{ background: 'var(--accent-green)' }}></span><span>SYNC_OK</span></div>
-                        <div className="legend-item"><span className="dot" style={{ background: 'var(--accent-purple)' }}></span><span>NET_MAP</span></div>
+                <div className="topology-matrix">
+                    <div className="matrix-item">
+                        <div className="matrix-label"><div className="dot blue"></div>SYS.PEAK</div>
+                        <div className="matrix-value">98.2<small>%</small></div>
                     </div>
-                    <div className="topology-ovr-stats">
-                        <div className="ovr-row"><label>NET_NODES</label><span className="ovr-value">{totalAgents}</span></div>
-                        <div className="ovr-row"><label>ACTIVE</label><span className="ovr-value highlight">{activeAgents}</span></div>
-                        <div className="ovr-row"><label>LATENCY</label><span className="ovr-value">24<small>ms</small></span></div>
+                    <div className="matrix-item">
+                        <div className="matrix-label"><div className="dot green"></div>SYNC.OK</div>
+                        <div className="matrix-value">100<small>%</small></div>
+                    </div>
+                    <div className="matrix-item">
+                        <div className="matrix-label"><div className="dot purple"></div>NET.NODES</div>
+                        <div className="matrix-value">{totalAgents}</div>
+                    </div>
+                    <div className="matrix-item">
+                        <div className="matrix-label"><div className="dot yellow"></div>OPS.ACTIVE</div>
+                        <div className="matrix-value highlight">{activeAgents}</div>
+                    </div>
+                    <div className="matrix-item">
+                        <div className="matrix-label"><div className="dot cyan"></div>OPS.LATENCY</div>
+                        <div className="matrix-value">24<small>ms</small></div>
+                    </div>
+                    <div className="matrix-item">
+                        <div className="matrix-label"><div className="dot blue"></div>NET.MAP</div>
+                        <div className="matrix-value">v4.2</div>
                     </div>
                 </div>
             </div>
@@ -306,9 +321,17 @@ export default function AnalyticsPage() {
                         <span className="ist-time">{formatIST(currentTime)}</span>
                         <span className="ist-label">IST (UTC+5:30)</span>
                     </div>
-                    <div className="system-status-pill">
-                        <div className="status-dot"></div>
-                        <span>SYSTEM_NOMINAL_OVR</span>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => exportToCSV(stats?.recent_tasks || [], 'analytics_intel.csv')}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            EXPORT_INTEL
+                        </button>
+                        <div className="system-status-pill">
+                            <div className="status-dot"></div>
+                            <span>SYSTEM_NOMINAL_OVR</span>
+                        </div>
                     </div>
                 </div>
                 <div className="header-main-group">
@@ -1170,6 +1193,20 @@ export default function AnalyticsPage() {
                 .score-s { color: #fbbf24; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.2); }
                 .score-aplus { color: var(--accent-green); background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); }
                 .score-a { color: var(--accent-blue); background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); }
+
+                /* Neural Status Matrix */
+                .topology-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
+                .matrix-item { display: flex; flex-direction: column; gap: 4px; }
+                .matrix-label { display: flex; align-items: center; gap: 6px; font-size: 8px; font-weight: 950; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+                .matrix-label .dot { width: 5px; height: 5px; border-radius: 50%; opacity: 0.8; }
+                .matrix-label .dot.blue { background: var(--accent-blue); box-shadow: 0 0 6px var(--accent-blue); }
+                .matrix-label .dot.green { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+                .matrix-label .dot.purple { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
+                .matrix-label .dot.yellow { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+                .matrix-label .dot.cyan { background: var(--accent-cyan, #22d3ee); box-shadow: 0 0 6px var(--accent-cyan, #22d3ee); }
+                .matrix-value { font-size: 16px; font-weight: 950; color: #fff; letter-spacing: -0.5px; }
+                .matrix-value small { font-size: 9px; opacity: 0.5; margin-left: 2px; }
+                .matrix-value.highlight { color: var(--accent-blue); text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
 
                 /* Animations */
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
