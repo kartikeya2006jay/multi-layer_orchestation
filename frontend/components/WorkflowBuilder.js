@@ -1,363 +1,258 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
-const STEP_TEMPLATES = [
-    { title: 'Research & Analysis', description: 'Investigate current data, search the web, and synthesize findings for the user objective.', agentId: '' },
-    { title: 'Code Generation', description: 'Write or modify code to implement the requested feature or fix based on established requirements.', agentId: '' },
-    { title: 'Quality Assurance', description: 'Test the implementation for bugs, edge cases, and performance regressions. Verify output accuracy.', agentId: '' },
-    { title: 'Final Report', description: 'Summarize the actions taken and provide a clear overview of the results and status.', agentId: '' }
+const NODE_COLORS = {
+    Agent: { bg: 'linear-gradient(135deg, #1d4ed8, #3b82f6)', border: 'rgba(59,130,246,0.4)', glow: '0 8px 32px rgba(59,130,246,0.3)' },
+    Tool: { bg: 'linear-gradient(135deg, #059669, #10b981)', border: 'rgba(16,185,129,0.4)', glow: '0 8px 32px rgba(16,185,129,0.3)' },
+    'API Call': { bg: 'linear-gradient(135deg, #d97706, #f59e0b)', border: 'rgba(245,158,11,0.4)', glow: '0 8px 32px rgba(245,158,11,0.3)' },
+    Conditional: { bg: 'linear-gradient(135deg, #dc2626, #f87171)', border: 'rgba(239,68,68,0.4)', glow: '0 8px 32px rgba(239,68,68,0.3)' },
+    Parallel: { bg: 'linear-gradient(135deg, #7c3aed, #a855f7)', border: 'rgba(139,92,246,0.4)', glow: '0 8px 32px rgba(139,92,246,0.3)' },
+};
+
+const LEGEND_ITEMS = [
+    { label: 'Agent', color: '#3b82f6' },
+    { label: 'Tool', color: '#10b981' },
+    { label: 'API Call', color: '#f59e0b' },
+    { label: 'Conditional', color: '#f87171' },
+    { label: 'Parallel', color: '#a855f7' },
 ];
 
-export default function WorkflowBuilder({ steps, onChange, agents }) {
-    const [draggedIndex, setDraggedIndex] = useState(null);
-    const [overIndex, setOverIndex] = useState(null);
-    const [expandedStep, setExpandedStep] = useState(null);
+export default function WorkflowCanvas({ nodes, onNodesChange, selectedNode, onSelectNode }) {
+    const canvasRef = useRef(null);
+    const [dragging, setDragging] = useState(null);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+    const [isPanning, setIsPanning] = useState(false);
+    const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
-    const onDragStart = (e, index) => {
-        setDraggedIndex(index);
-        e.dataTransfer.effectAllowed = 'move';
-        // Add a ghost image or some styling
-        e.currentTarget.classList.add('is-dragging');
-    };
+    const NODE_W = 200;
+    const NODE_H = 90;
 
-    const onDragOver = (e, index) => {
-        e.preventDefault();
-        if (overIndex !== index) {
-            setOverIndex(index);
+    const handleMouseDown = useCallback((e, index) => {
+        e.stopPropagation();
+        const rect = canvasRef.current.getBoundingClientRect();
+        setDragging(index);
+        setDragOffset({
+            x: e.clientX - rect.left - nodes[index].x - canvasOffset.x,
+            y: e.clientY - rect.top - nodes[index].y - canvasOffset.y,
+        });
+        onSelectNode(index);
+    }, [nodes, canvasOffset, onSelectNode]);
+
+    const handleCanvasMouseDown = useCallback((e) => {
+        if (e.target === canvasRef.current || e.target.closest('.canvas-grid')) {
+            setIsPanning(true);
+            setPanStart({ x: e.clientX - canvasOffset.x, y: e.clientY - canvasOffset.y });
+            onSelectNode(null);
         }
-    };
+    }, [canvasOffset, onSelectNode]);
 
-    const onDrop = (e, index) => {
-        e.preventDefault();
-        if (draggedIndex === null || draggedIndex === index) {
-            setDraggedIndex(null);
-            setOverIndex(null);
-            return;
+    const handleMouseMove = useCallback((e) => {
+        if (dragging !== null) {
+            const rect = canvasRef.current.getBoundingClientRect();
+            const newNodes = [...nodes];
+            newNodes[dragging] = {
+                ...newNodes[dragging],
+                x: e.clientX - rect.left - dragOffset.x - canvasOffset.x,
+                y: e.clientY - rect.top - dragOffset.y - canvasOffset.y,
+            };
+            onNodesChange(newNodes);
+        } else if (isPanning) {
+            setCanvasOffset({
+                x: e.clientX - panStart.x,
+                y: e.clientY - panStart.y,
+            });
         }
+    }, [dragging, dragOffset, nodes, onNodesChange, isPanning, panStart, canvasOffset]);
 
-        const newSteps = [...steps];
-        const draggedItem = newSteps[draggedIndex];
-        newSteps.splice(draggedIndex, 1);
-        newSteps.splice(index, 0, draggedItem);
+    const handleMouseUp = useCallback(() => {
+        setDragging(null);
+        setIsPanning(false);
+    }, []);
 
-        onChange(newSteps);
-        setDraggedIndex(null);
-        setOverIndex(null);
-    };
+    useEffect(() => {
+        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, [handleMouseUp, handleMouseMove]);
 
-    const onDragEnd = (e) => {
-        setDraggedIndex(null);
-        setOverIndex(null);
-        e.currentTarget.classList.remove('is-dragging');
-    };
-
-    const updateStep = (index, field, value) => {
-        const newSteps = [...steps];
-        newSteps[index] = { ...newSteps[index], [field]: value };
-        onChange(newSteps);
-    };
-
-    const removeStep = (index) => {
-        onChange(steps.filter((_, i) => i !== index));
-    };
-
-    const addTemplate = (template) => {
-        onChange([...steps, { ...template }]);
-    };
+    // Build connector paths between sequential nodes
+    const connectors = [];
+    for (let i = 0; i < nodes.length - 1; i++) {
+        const from = nodes[i];
+        const to = nodes[i + 1];
+        const x1 = from.x + NODE_W / 2 + canvasOffset.x;
+        const y1 = from.y + NODE_H + canvasOffset.y;
+        const x2 = to.x + NODE_W / 2 + canvasOffset.x;
+        const y2 = to.y + canvasOffset.y;
+        const midY = (y1 + y2) / 2;
+        connectors.push(
+            <g key={`conn-${i}`}>
+                <path
+                    d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                    fill="none"
+                    stroke="rgba(59,130,246,0.35)"
+                    strokeWidth="2"
+                    strokeDasharray="6 4"
+                />
+                {/* Arrow head */}
+                <polygon
+                    points={`${x2 - 5},${y2 - 8} ${x2 + 5},${y2 - 8} ${x2},${y2}`}
+                    fill="rgba(59,130,246,0.5)"
+                />
+            </g>
+        );
+    }
 
     return (
-        <div className="workflow-builder">
-            <div className="builder-templates">
-                <span className="label">Quick Architect Templates:</span>
-                <div className="template-chips">
-                    {STEP_TEMPLATES.map((tmpl, i) => (
-                        <button key={i} type="button" className="chip" onClick={() => addTemplate(tmpl)}>
-                            + {tmpl.title.split(' ')[0]}
-                        </button>
-                    ))}
-                </div>
-            </div>
+        <div
+            ref={canvasRef}
+            onMouseDown={handleCanvasMouseDown}
+            style={{
+                flex: 1,
+                position: 'relative',
+                overflow: 'hidden',
+                cursor: isPanning ? 'grabbing' : 'default',
+                background: '#080a12',
+                borderRadius: '0',
+            }}
+        >
+            {/* Grid Pattern */}
+            <div className="canvas-grid" style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `
+                    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
+                `,
+                backgroundSize: '40px 40px',
+                backgroundPosition: `${canvasOffset.x % 40}px ${canvasOffset.y % 40}px`,
+                pointerEvents: 'none',
+            }} />
 
-            <div className="steps-container">
-                {steps.map((step, i) => (
+            {/* SVG Connectors */}
+            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}>
+                <defs>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                        <feMerge>
+                            <feMergeNode in="coloredBlur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+                {connectors}
+            </svg>
+
+            {/* Nodes */}
+            {nodes.map((node, i) => {
+                const colors = NODE_COLORS[node.stepType] || NODE_COLORS.Agent;
+                const isSelected = selectedNode === i;
+                return (
                     <div
                         key={i}
-                        className={`builder-step-card ${draggedIndex === i ? 'dragging' : ''} ${overIndex === i ? 'drop-target' : ''}`}
-                        draggable
-                        onDragStart={(e) => onDragStart(e, i)}
-                        onDragOver={(e) => onDragOver(e, i)}
-                        onDrop={(e) => onDrop(e, i)}
-                        onDragEnd={onDragEnd}
+                        onMouseDown={(e) => handleMouseDown(e, i)}
+                        style={{
+                            position: 'absolute',
+                            left: node.x + canvasOffset.x,
+                            top: node.y + canvasOffset.y,
+                            width: NODE_W,
+                            minHeight: NODE_H,
+                            background: colors.bg,
+                            border: `2px solid ${isSelected ? '#fff' : colors.border}`,
+                            borderRadius: '16px',
+                            padding: '16px 20px',
+                            cursor: dragging === i ? 'grabbing' : 'grab',
+                            zIndex: dragging === i ? 100 : 2,
+                            boxShadow: isSelected
+                                ? `${colors.glow}, 0 0 0 2px rgba(255,255,255,0.3)`
+                                : colors.glow,
+                            transition: dragging === i ? 'none' : 'box-shadow 0.2s ease',
+                            userSelect: 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
+                        }}
                     >
-                        <div className="step-handle">
-                            <span className="step-num">{i + 1}</span>
-                            <div className="dragger">⠿</div>
+                        {/* Top Handle */}
+                        <div style={{
+                            position: 'absolute', top: '-7px', left: '50%', transform: 'translateX(-50%)',
+                            width: '12px', height: '12px', borderRadius: '50%',
+                            background: '#0d0f17', border: '2px solid rgba(255,255,255,0.3)',
+                            zIndex: 3,
+                        }} />
+                        {/* Bottom Handle */}
+                        <div style={{
+                            position: 'absolute', bottom: '-7px', left: '50%', transform: 'translateX(-50%)',
+                            width: '12px', height: '12px', borderRadius: '50%',
+                            background: '#0d0f17', border: '2px solid rgba(255,255,255,0.3)',
+                            zIndex: 3,
+                        }} />
+
+                        <div style={{
+                            fontSize: '14px', fontWeight: 800, color: '#fff',
+                            lineHeight: '1.4', wordBreak: 'break-word',
+                        }}>
+                            {node.title || 'Untitled Step'}
                         </div>
-
-                        <div className="step-main">
-                            <div className="step-header">
-                                <div className="step-info" onClick={() => setExpandedStep(expandedStep === i ? null : i)}>
-                                    <input
-                                        className="step-title-input"
-                                        value={step.title}
-                                        onChange={(e) => updateStep(i, 'title', e.target.value)}
-                                        onClick={(e) => e.stopPropagation()}
-                                        placeholder="Enter Step Title..."
-                                    />
-                                    <span className="expand-icon">{expandedStep === i ? '▲' : '▼'}</span>
-                                </div>
-                                <button type="button" className="btn-remove" onClick={() => removeStep(i)}>✕</button>
-                            </div>
-
-                            {(expandedStep === i || !step.title) && (
-                                <div className="step-details-expanded">
-                                    <textarea
-                                        className="step-desc-input"
-                                        value={step.description}
-                                        onChange={(e) => updateStep(i, 'description', e.target.value)}
-                                        placeholder="Describe the agent instructions for this step..."
-                                    />
-
-                                    <div className="step-meta">
-                                        <div className="meta-field">
-                                            <label>Agent Assignment</label>
-                                            <select
-                                                className="step-agent-select"
-                                                value={step.agentId}
-                                                onChange={(e) => updateStep(i, 'agentId', e.target.value)}
-                                            >
-                                                <option value="">Auto-assign Agent</option>
-                                                {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {!expandedStep === i && step.description && (
-                                <p className="step-preview">{step.description.slice(0, 100)}{step.description.length > 100 ? '...' : ''}</p>
-                            )}
+                        <div style={{
+                            fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.6)',
+                            marginTop: '6px', textTransform: 'uppercase', letterSpacing: '1px',
+                        }}>
+                            {node.stepType || 'Agent'}
                         </div>
+                    </div>
+                );
+            })}
 
-                        {i < steps.length - 1 && (
-                            <div className="step-connector-v2">
-                                <div className="connector-line"></div>
-                                <div className="connector-arrow"></div>
-                            </div>
-                        )}
+            {/* Legend */}
+            <div style={{
+                position: 'absolute', bottom: '20px', right: '20px',
+                background: 'rgba(13,15,23,0.9)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '12px', padding: '16px 20px', zIndex: 10,
+                backdropFilter: 'blur(12px)',
+            }}>
+                <div style={{
+                    fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)',
+                    textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '12px',
+                }}>Legend</div>
+                {LEGEND_ITEMS.map((item) => (
+                    <div key={item.label} style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        marginBottom: '8px', fontSize: '12px', color: 'var(--text-secondary)',
+                        fontWeight: 500,
+                    }}>
+                        <div style={{
+                            width: '10px', height: '10px', borderRadius: '3px',
+                            background: item.color, boxShadow: `0 0 8px ${item.color}40`,
+                        }} />
+                        {item.label}
                     </div>
                 ))}
             </div>
 
-            <style jsx>{`
-                .workflow-builder {
-                    margin-top: 10px;
-                }
-                .builder-templates {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    margin-bottom: 24px;
-                    padding: 16px;
-                    background: rgba(255,255,255,0.02);
-                    border: 1px dashed rgba(255,255,255,0.1);
-                    border-radius: 12px;
-                }
-                .template-chips {
-                    display: flex;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                }
-                .chip {
-                    padding: 6px 14px;
-                    background: rgba(59, 130, 246, 0.1);
-                    color: #60a5fa;
-                    border: 1px solid rgba(59, 130, 246, 0.3);
-                    border-radius: 20px;
-                    font-size: 11px;
-                    font-weight: 800;
-                    cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-                .chip:hover {
-                    background: #3b82f6;
-                    color: white;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-                }
-                .steps-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 24px;
-                    padding: 10px 0;
-                }
-                .builder-step-card {
-                    display: flex;
-                    gap: 20px;
-                    background: var(--bg-glass);
-                    border: 1px solid var(--border-glass);
-                    border-radius: 16px;
-                    padding: 20px;
-                    position: relative;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                .builder-step-card.dragging {
-                    opacity: 0.4;
-                    transform: scale(0.95);
-                    border-style: dashed;
-                }
-                .builder-step-card.drop-target {
-                    border-color: var(--accent-blue);
-                    background: rgba(59, 130, 246, 0.05);
-                    transform: translateY(-4px);
-                }
-                .step-handle {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 12px;
-                }
-                .step-num {
-                    width: 28px;
-                    height: 28px;
-                    background: var(--accent-blue);
-                    color: white;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 12px;
-                    font-weight: 900;
-                    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-                }
-                .dragger {
-                    color: var(--text-muted);
-                    cursor: grab;
-                    font-size: 20px;
-                    opacity: 0.5;
-                }
-                .dragger:hover { opacity: 1; }
-                .step-main {
-                    flex: 1;
-                }
-                .step-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 8px;
-                }
-                .step-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    flex: 1;
-                    cursor: pointer;
-                }
-                .step-title-input {
-                    background: none;
-                    border: none;
-                    color: var(--text-primary);
-                    font-weight: 800;
-                    font-size: 16px;
-                    width: 100%;
-                    outline: none;
-                }
-                .expand-icon {
-                    font-size: 10px;
-                    color: var(--text-muted);
-                }
-                .btn-remove {
-                    background: rgba(239, 68, 68, 0.1);
-                    border: 1px solid rgba(239, 68, 68, 0.2);
-                    color: #f87171;
-                    width: 24px;
-                    height: 24px;
-                    border-radius: 6px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                .btn-remove:hover { 
-                    background: #ef4444; 
-                    color: white;
-                }
-                .step-desc-input {
-                    width: 100%;
-                    background: rgba(0,0,0,0.3);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 10px;
-                    padding: 12px;
-                    color: var(--text-secondary);
-                    font-size: 13px;
-                    min-height: 80px;
-                    margin-bottom: 16px;
-                    resize: vertical;
-                    line-height: 1.5;
-                }
-                .step-meta {
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 16px;
-                }
-                .meta-field label {
-                    display: block;
-                    font-size: 11px;
-                    font-weight: 700;
-                    color: var(--text-muted);
-                    margin-bottom: 6px;
-                    text-transform: uppercase;
-                }
-                .step-agent-select {
-                    width: 100%;
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                    color: var(--text-primary);
-                    font-size: 13px;
-                    outline: none;
-                }
-                .step-preview {
-                    font-size: 12px;
-                    color: var(--text-muted);
-                    margin: 0;
-                    opacity: 0.8;
-                }
-                .step-connector-v2 {
-                    position: absolute;
-                    bottom: -25px;
-                    left: 33px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                }
-                .connector-line {
-                    width: 2px;
-                    height: 20px;
-                    background: linear-gradient(to bottom, var(--accent-blue), transparent);
-                    opacity: 0.4;
-                }
-                .connector-arrow {
-                    width: 6px;
-                    height: 6px;
-                    border-right: 2px solid var(--accent-blue);
-                    border-bottom: 2px solid var(--accent-blue);
-                    transform: rotate(45deg);
-                    opacity: 0.4;
-                    margin-top: -4px;
-                }
-                .label {
-                    font-size: 12px;
-                    font-weight: 700;
-                    color: var(--text-muted);
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-            `}</style>
+            {/* Empty State */}
+            {nodes.length === 0 && (
+                <div style={{
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center', color: 'var(--text-muted)',
+                    pointerEvents: 'none',
+                }}>
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.3, marginBottom: '16px' }}>
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M12 8v8" />
+                        <path d="M8 12h8" />
+                    </svg>
+                    <div style={{ fontSize: '16px', fontWeight: 600 }}>Add steps from the right panel</div>
+                    <div style={{ fontSize: '13px', marginTop: '6px', opacity: 0.6 }}>Configure and add nodes to build your pipeline</div>
+                </div>
+            )}
         </div>
     );
 }
