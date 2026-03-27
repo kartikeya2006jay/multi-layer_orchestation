@@ -2,11 +2,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDashboardStats } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
+import { formatIST, formatISTDate } from '@/lib/time';
 
 export default function AnalyticsPage() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const { subscribe } = useWebSocket();
+
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     const loadStats = useCallback(async () => {
         try {
@@ -22,8 +25,19 @@ export default function AnalyticsPage() {
     useEffect(() => {
         loadStats();
         const unsub = subscribe('task:update', loadStats);
-        return unsub;
+
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+
+        return () => {
+            unsub();
+            clearInterval(timer);
+        };
     }, [loadStats, subscribe]);
+
+    const currentIST = formatIST(currentTime);
+    const todayIST = formatISTDate(currentTime);
 
     const renderChakraTopology = () => {
         const center = 160;
@@ -124,6 +138,8 @@ export default function AnalyticsPage() {
         );
     };
 
+    const [hoverPos, setHoverPos] = useState(null);
+
     const renderVelocityChart = () => {
         const trends = stats?.trends?.tasks || [];
         const max = Math.max(...trends.map(t => t.count), 5);
@@ -136,10 +152,10 @@ export default function AnalyticsPage() {
         const points = trends.map((t, i) => ({
             x: padL + (i / (trends.length - 1 || 1)) * chartW,
             y: padT + chartH - ((t.count / max) * chartH * 0.85),
-            value: t.count
+            value: t.count,
+            date: t.date
         }));
 
-        // Smooth cubic bezier path
         const buildCurve = (pts) => {
             if (pts.length < 2) return '';
             let d = `M ${pts[0].x} ${pts[0].y}`;
@@ -156,7 +172,7 @@ export default function AnalyticsPage() {
         const avg = trends.length > 0 ? trends.reduce((a, b) => a + b.count, 0) / trends.length : 0;
         const avgY = padT + chartH - ((avg / max) * chartH * 0.85);
 
-        // Grid line values
+        // Grid
         const gridSteps = 4;
         const gridLines = Array.from({ length: gridSteps + 1 }, (_, i) => {
             const val = Math.round((max / gridSteps) * i);
@@ -164,12 +180,31 @@ export default function AnalyticsPage() {
             return { val, y };
         });
 
+        const handleMouseMove = (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * width;
+            // Find closest point
+            let closest = points[0];
+            let minDist = Math.abs(x - points[0].x);
+            points.forEach(p => {
+                const d = Math.abs(x - p.x);
+                if (d < minDist) {
+                    minDist = d;
+                    closest = p;
+                }
+            });
+            setHoverPos(closest);
+        };
+
         return (
-            <div className="velocity-container">
+            <div className="velocity-container" onMouseMove={handleMouseMove} onMouseLeave={() => setHoverPos(null)}>
                 <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                     <defs>
+                        <pattern id="scanline" width="100%" height="4" patternUnits="userSpaceOnUse">
+                            <rect width="100%" height="1" fill="rgba(255,255,255,0.03)" />
+                        </pattern>
                         <linearGradient id="area-grad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity="0.35" />
+                            <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity="0.4" />
                             <stop offset="60%" stopColor="var(--accent-purple)" stopOpacity="0.1" />
                             <stop offset="100%" stopColor="var(--accent-blue)" stopOpacity="0" />
                         </linearGradient>
@@ -179,31 +214,63 @@ export default function AnalyticsPage() {
                         </linearGradient>
                         <filter id="line-glow"><feGaussianBlur stdDeviation="4" result="blur" /><feComposite in="SourceGraphic" in2="blur" operator="over" /></filter>
                     </defs>
-                    {/* Grid lines */}
+
+                    {/* Sci-fi Grid Backdrop */}
+                    <rect x={padL} y={padT} width={chartW} height={chartH} fill="rgba(255,255,255,0.01)" />
                     {gridLines.map((g, i) => (
                         <g key={i}>
-                            <line x1={padL} y1={g.y} x2={width - padR} y2={g.y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-                            <text x={padL - 8} y={g.y + 4} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize="10" fontWeight="700" fontFamily="monospace">{g.val}</text>
+                            <line x1={padL} y1={g.y} x2={width - padR} y2={g.y} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="2 2" />
+                            <text x={padL - 10} y={g.y + 4} textAnchor="end" fill="rgba(255,255,255,0.3)" fontSize="10" fontWeight="800" fontFamily="var(--font-mono)">{g.val}</text>
                         </g>
                     ))}
+
+                    {/* Ghost Line (Historical Lag Simulation) */}
+                    {curvePath && <path d={curvePath} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4 4" transform="translate(-10, 5)" />}
+
+                    {/* Area fill with Scanlines */}
+                    {areaPath && (
+                        <g>
+                            <path d={areaPath} fill="url(#area-grad)" />
+                            <path d={areaPath} fill="url(#scanline)" className="scan-anim" />
+                        </g>
+                    )}
+
                     {/* Avg baseline */}
-                    <line x1={padL} y1={avgY} x2={width - padR} y2={avgY} stroke="rgba(139,92,246,0.3)" strokeWidth="1.5" strokeDasharray="6 4" />
-                    <text x={width - padR + 4} y={avgY + 4} fill="rgba(139,92,246,0.5)" fontSize="9" fontWeight="800">AVG</text>
-                    {/* Area fill */}
-                    {areaPath && <path d={areaPath} fill="url(#area-grad)" />}
+                    <line x1={padL} y1={avgY} x2={width - padR} y2={avgY} stroke="var(--accent-purple)" strokeWidth="1" strokeDasharray="8 4" opacity="0.4" />
+
                     {/* Main line */}
-                    {curvePath && <path d={curvePath} fill="none" stroke="url(#line-grad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#line-glow)" />}
-                    {/* Data points */}
+                    {curvePath && <path d={curvePath} fill="none" stroke="url(#line-grad)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#line-glow)" />}
+
+                    {/* Interactive Crosshair */}
+                    {hoverPos && (
+                        <g>
+                            <line x1={hoverPos.x} y1={padT} x2={hoverPos.x} y2={padT + chartH} stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="4 4" />
+                            <circle cx={hoverPos.x} cy={hoverPos.y} r="8" fill="white" filter="url(#line-glow)" />
+                        </g>
+                    )}
+
+                    {/* Data points + Particles */}
                     {points.map((p, i) => (
                         <g key={i}>
-                            <circle cx={p.x} cy={p.y} r="10" fill="var(--accent-blue)" opacity="0.1">
-                                <animate attributeName="r" values="10;16;10" dur="3s" begin={`${i * 0.4}s`} repeatCount="indefinite" />
+                            <circle cx={p.x} cy={p.y} r="15" fill="var(--accent-blue)" opacity="0.05">
+                                <animate attributeName="r" values="10;20;10" dur="4s" begin={`${i * 0.5}s`} repeatCount="indefinite" />
                             </circle>
-                            <circle cx={p.x} cy={p.y} r="5" fill="#0d0f17" stroke="url(#line-grad)" strokeWidth="2.5" />
-                            <circle cx={p.x} cy={p.y} r="2" fill="white" />
+                            <circle cx={p.x} cy={p.y} r="4" fill="white" />
+                            {/* Particle Emitters */}
+                            <circle cx={p.x} cy={p.y} r="2" fill="var(--accent-blue)">
+                                <animate attributeName="opacity" values="1;0" dur="2s" repeatCount="indefinite" />
+                                <animate attributeName="r" values="2;8" dur="2s" repeatCount="indefinite" />
+                            </circle>
                         </g>
                     ))}
                 </svg>
+
+                {hoverPos && (
+                    <div className="chart-tooltip" style={{ left: `${(hoverPos.x / width) * 100}%`, top: `${(hoverPos.y / height) * 100}%` }}>
+                        <div className="tooltip-date">{hoverPos.date}</div>
+                        <div className="tooltip-val">{hoverPos.value} OPS</div>
+                    </div>
+                )}
             </div>
         );
     };
@@ -232,15 +299,27 @@ export default function AnalyticsPage() {
                         <span className="intel-tag">NEURAL_CORE_v4.2</span>
                         <div className="pulse-line"></div>
                     </div>
+                    <div className="system-clock-pill">
+                        <div className="clock-icon">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                        </div>
+                        <span className="ist-time">{formatIST(currentTime)}</span>
+                        <span className="ist-label">IST (UTC+5:30)</span>
+                    </div>
                     <div className="system-status-pill">
                         <div className="status-dot"></div>
                         <span>SYSTEM_NOMINAL_OVR</span>
                     </div>
                 </div>
-                <h1 className="dashboard-title">
-                    <span className="title-alt">CHAKRAVIEW</span>
-                    <span className="title-main">NEURAL CORE</span>
-                </h1>
+                <div className="header-main-group">
+                    <h1 className="dashboard-title">
+                        <span className="title-alt">CHAKRAVIEW</span>
+                        <span className="title-main">NEURAL CORE</span>
+                    </h1>
+                    <div className="header-date">
+                        {formatISTDate(currentTime)}
+                    </div>
+                </div>
                 <div className="header-decoration"></div>
             </header>
 
@@ -537,9 +616,9 @@ export default function AnalyticsPage() {
 
                 .header-meta {
                     display: flex;
-                    justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 20px;
+                    gap: 24px;
+                    margin-bottom: 24px;
                 }
 
                 .intel-segment {
@@ -550,7 +629,7 @@ export default function AnalyticsPage() {
 
                 .intel-tag {
                     font-size: 10px;
-                    font-weight: 900;
+                    font-weight: 950;
                     letter-spacing: 4px;
                     color: var(--accent-blue);
                     background: rgba(59, 130, 246, 0.1);
@@ -560,7 +639,7 @@ export default function AnalyticsPage() {
                 }
 
                 .pulse-line {
-                    width: 100px;
+                    width: 60px;
                     height: 1px;
                     background: linear-gradient(90deg, var(--accent-blue), transparent);
                     position: relative;
@@ -583,6 +662,44 @@ export default function AnalyticsPage() {
                     100% { left: 100%; opacity: 0; }
                 }
 
+                .system-clock-pill {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    font-family: var(--font-mono);
+                }
+
+                .clock-icon {
+                    color: var(--accent-blue);
+                    display: flex;
+                    animation: pulse-dot 2s infinite;
+                }
+
+                .ist-time {
+                    font-size: 14px;
+                    font-weight: 900;
+                    color: #fff;
+                    letter-spacing: 1px;
+                }
+
+                .ist-label {
+                    font-size: 9px;
+                    font-weight: 800;
+                    color: var(--text-muted);
+                    letter-spacing: 1px;
+                    opacity: 0.6;
+                }
+
+                .header-main-group {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                }
+
                 .dashboard-title {
                     font-size: 72px;
                     font-weight: 950;
@@ -591,6 +708,15 @@ export default function AnalyticsPage() {
                     margin: 0;
                     display: flex;
                     flex-direction: column;
+                }
+
+                .header-date {
+                    font-size: 18px;
+                    font-weight: 800;
+                    color: var(--text-muted);
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    margin-bottom: 8px;
                 }
 
                 .title-alt {
@@ -619,15 +745,16 @@ export default function AnalyticsPage() {
                 .system-status-pill {
                     display: flex;
                     align-items: center;
-                    gap: 12px;
+                    gap: 10px;
                     font-size: 10px;
                     font-weight: 900;
                     color: var(--accent-green);
                     background: rgba(16, 185, 129, 0.05);
-                    padding: 10px 20px;
-                    border-radius: 4px;
+                    padding: 8px 16px;
+                    border-radius: 8px;
                     border: 1px solid rgba(16, 185, 129, 0.1);
                     letter-spacing: 1.5px;
+                    margin-left: auto;
                 }
 
                 .status-dot {
@@ -637,6 +764,50 @@ export default function AnalyticsPage() {
                     border-radius: 50%;
                     box-shadow: 0 0 15px var(--accent-green);
                     animation: pulse-dot 2s infinite;
+                }
+
+                .velocity-container {
+                    position: relative;
+                    height: 280px;
+                    margin: 0 32px 32px;
+                }
+
+                .scan-anim {
+                    animation: scan-move 8s linear infinite;
+                }
+
+                @keyframes scan-move {
+                    0% { transform: translateY(0); }
+                    100% { transform: translateY(4px); }
+                }
+
+                .chart-tooltip {
+                    position: absolute;
+                    pointer-events: none;
+                    background: rgba(13, 15, 23, 0.95);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 12px;
+                    border-radius: 8px;
+                    transform: translate(-50%, -120%);
+                    z-index: 100;
+                    backdrop-filter: blur(10px);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                }
+
+                .tooltip-date {
+                    font-size: 9px;
+                    font-weight: 900;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    margin-bottom: 4px;
+                }
+
+                .tooltip-val {
+                    font-size: 16px;
+                    font-weight: 950;
+                    color: #fff;
+                    font-family: var(--font-mono);
                 }
 
                 .stats-row {

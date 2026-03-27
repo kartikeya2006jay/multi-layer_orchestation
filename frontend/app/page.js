@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getDashboardStats } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
 import { useAuth } from '@/lib/auth';
+import { formatIST, formatISTDate } from '@/lib/time';
 
 // ─── Professional SVG Icons ───────────────────────────────────
 const MetricIcons = {
@@ -92,6 +93,7 @@ export default function DashboardPage() {
     const [error, setError] = useState(null);
     const { connected, subscribe } = useWebSocket();
     const { user } = useAuth();
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     const loadStats = useCallback(async () => {
         try {
@@ -119,8 +121,19 @@ export default function DashboardPage() {
     }, [subscribe, loadStats]);
 
     useEffect(() => {
-        const interval = setInterval(loadStats, 10000);
-        return () => clearInterval(interval);
+        const interval = setInterval(() => {
+            loadStats();
+            setCurrentTime(new Date());
+        }, 10000);
+
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+
+        return () => {
+            clearInterval(interval);
+            clearInterval(timer);
+        };
     }, [loadStats]);
 
     if (loading) {
@@ -200,6 +213,26 @@ export default function DashboardPage() {
                             display: 'inline-block',
                         }} />
                         {connected ? 'Live' : 'Offline'}
+                    </div>
+
+                    <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                        <div className="system-status-pill" style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            fontSize: '10px', fontWeight: 900, color: 'var(--accent-blue)',
+                            background: 'rgba(59, 130, 246, 0.05)', padding: '6px 14px',
+                            borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.1)'
+                        }}>
+                            <div className="status-dot" style={{ width: '6px', height: '6px', background: 'var(--accent-blue)', borderRadius: '50%', boxShadow: '0 0 10px var(--accent-blue)' }}></div>
+                            <span>IST {formatIST(currentTime)}</span>
+                        </div>
+                        <div className="system-status-pill" style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            fontSize: '10px', fontWeight: 900, color: 'var(--text-muted)',
+                            background: 'rgba(255, 255, 255, 0.02)', padding: '6px 14px',
+                            borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.05)'
+                        }}>
+                            <span>{formatISTDate(currentTime)}</span>
+                        </div>
                     </div>
                 </div>
                 <h1 style={{ fontSize: '38px', fontWeight: 900, letterSpacing: '-1.5px', marginBottom: '6px', lineHeight: 1.1 }}>
@@ -354,7 +387,7 @@ export default function DashboardPage() {
                                                 <span style={{ opacity: 0.3 }}>|</span>
                                                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     {MetricIcons.clock}
-                                                    {new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {formatIST(task.created_at)}
                                                 </span>
                                             </div>
                                             {task.status === 'running' && (

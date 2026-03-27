@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { getBillingUsage, getBillingStatus } from '@/lib/api';
+import { formatISTDate, formatISTDateTime } from '@/lib/time';
 
 export default function BillingPage() {
     const [usage, setUsage] = useState(null);
@@ -70,8 +71,7 @@ export default function BillingPage() {
                         </div>
                         <div className="usage-summary">
                             <div className="summary-row">
-                                <label>NEXT_SETTLEMENT</label>
-                                <span>{new Date(status.next_billing).toLocaleDateString()}</span>
+                                <span>{formatISTDate(status.next_billing)}</span>
                             </div>
                             <div className="summary-row">
                                 <label>AUTO_RENEW</label>
@@ -211,7 +211,7 @@ export default function BillingPage() {
                             <tbody>
                                 {usage.history.map(log => (
                                     <tr key={log.id}>
-                                        <td className="mono">{new Date(log.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</td>
+                                        <td className="mono">{formatISTDateTime(log.created_at)}</td>
                                         <td className="bold">{log.task_title || 'KERNEL_DIRECT'}</td>
                                         <td className="mono">{(log.tokens_used || 0).toLocaleString()}</td>
                                         <td className="price-tag">${Number(log.cost || 0).toFixed(4)}</td>

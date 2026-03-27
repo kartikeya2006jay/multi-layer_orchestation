@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import TaskGraph from '@/components/TaskGraph';
 import { getTasks, launchTask, cancelTask, getTaskLogs, getAgents, suggestInput } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
+import { formatIST } from '@/lib/time';
 
 export default function TasksPage() {
     const [tasks, setTasks] = useState([]);
@@ -336,7 +337,7 @@ export default function TasksPage() {
                                 <div className="technical-log-container">
                                     {logs.map((log, i) => (
                                         <div key={i} className="tech-log-row">
-                                            <span className="log-ts">[{new Date(log.created_at).toLocaleTimeString()}]</span>
+                                            <span className="log-ts">[{formatIST(log.created_at)}]</span>
                                             <span className={`log-lvl lvl-${log.level.toLowerCase()}`}>{log.level.toUpperCase()}</span>
                                             <span className="log-msg">{log.message}</span>
                                         </div>

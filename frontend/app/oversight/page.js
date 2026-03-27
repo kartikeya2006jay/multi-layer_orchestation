@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getOversightQueue, approveOversight, rejectOversight } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
+import { formatISTDateTime } from '@/lib/time';
 
 export default function OversightPage() {
     const [items, setItems] = useState([]);
@@ -96,7 +97,7 @@ export default function OversightPage() {
                                     </div>
                                     <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{item.task_title || 'Untitled Task'}</h3>
                                     <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                        Agent: {item.agent_name || 'Default'} · {new Date(item.created_at).toLocaleString()}
+                                        Agent: {item.agent_name || 'Default'} · {formatISTDateTime(item.created_at)}
                                     </p>
                                 </div>
                             </div>

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+process.env.TZ = 'Asia/Kolkata';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';

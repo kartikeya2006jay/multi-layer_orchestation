@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getWorkflows, createWorkflow, updateWorkflow, deleteWorkflow, executeWorkflow, getAgents } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
+import { formatIST } from '@/lib/time';
 import WorkflowCanvas from '@/components/WorkflowBuilder';
 
 const STEP_TYPES = ['Agent', 'Tool', 'API Call', 'Conditional', 'Parallel'];
@@ -80,8 +81,7 @@ export default function WorkflowsPage() {
         const unsub1 = subscribe('workflow:update', (data) => {
             loadWorkflows();
             if (showLedger) {
-                const now = new Date();
-                const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+                const ts = formatIST(new Date());
                 if (data.status === 'running') {
                     stepCounterRef.current = 0;
                     completedStepsRef.current = 0;
@@ -105,8 +105,7 @@ export default function WorkflowsPage() {
         });
         const unsub2 = subscribe('task:created', (data) => {
             if (showLedger) {
-                const now = new Date();
-                const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+                const ts = formatIST(new Date());
                 const idx = stepCounterRef.current;
                 const adapter = canvasNodes[idx]?.adapter || 'OpenAI';
                 const model = canvasNodes[idx]?.model || 'gpt-4';
@@ -115,8 +114,7 @@ export default function WorkflowsPage() {
         });
         const unsub3 = subscribe('task:update', (data) => {
             if (showLedger) {
-                const now = new Date();
-                const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+                const ts = formatIST(new Date());
                 const idx = stepCounterRef.current;
                 const model = canvasNodes[idx]?.model || 'gpt-4';
                 if (data.status === 'running') {
@@ -128,7 +126,7 @@ export default function WorkflowsPage() {
             }
         });
         return () => { unsub1(); unsub2(); unsub3(); };
-    }, [subscribe, showLedger, canvasNodes, loadWorkflows, addLedgerEntry]);
+    }, [subscribe, showLedger, canvasNodes, loadWorkflows, addLedgerEntry, formatIST]);
 
     // Place nodes in a vertical cascade
     const placeNewNode = (stepData) => {
@@ -194,8 +192,7 @@ export default function WorkflowsPage() {
         setIsRunning(true);
         window.__wfStartTime = Date.now();
 
-        const now = new Date();
-        const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+        const ts = formatIST(new Date());
         addLedgerEntry(ts, 'SYSTEM', 'Initializing execution pipeline...', 'system');
 
         try {
