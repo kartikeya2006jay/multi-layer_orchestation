@@ -28,6 +28,9 @@ export function broadcast(message, workspaceId) {
 
         try {
             if (socket.readyState === 1) {
+                // Multi-tenancy check:
+                // 1. If no targetWorkspaceId, broadcast to everyone (system messages)
+                // 2. If targetWorkspaceId, ONLY send to clients with matching workspaceId
                 if (!targetWorkspaceId || clientWorkspaceId === targetWorkspaceId) {
                     socket.send(data);
                 }

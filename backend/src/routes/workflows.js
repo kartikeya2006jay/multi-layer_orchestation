@@ -76,7 +76,8 @@ export default async function workflowsRoutes(fastify) {
             const result = await executeWorkflow(request.params.id, workspaceId);
             return { success: true, ...result };
         } catch (error) {
-            return reply.code(400).send({ error: error.message });
+            fastify.log.error(`Workflow execution failed: ${error.message}`);
+            return reply.code(400).send({ error: error.message || 'Workflow orchestration failed to initialize' });
         }
     });
 }

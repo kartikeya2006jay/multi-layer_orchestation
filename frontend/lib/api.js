@@ -6,7 +6,7 @@ async function request(endpoint, options = {}) {
 
     const config = {
         headers: {
-            'Content-Type': 'application/json',
+            ...(options.body ? { 'Content-Type': 'application/json' } : {}),
             ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             ...options.headers,
         },
@@ -64,7 +64,7 @@ export const getWorkflow = (id) => request(`/api/workflows/${id}`);
 export const createWorkflow = (data) => request('/api/workflows', { method: 'POST', body: data });
 export const updateWorkflow = (id, data) => request(`/api/workflows/${id}`, { method: 'PUT', body: data });
 export const deleteWorkflow = (id) => request(`/api/workflows/${id}`, { method: 'DELETE' });
-export const executeWorkflow = (id) => request(`/api/workflows/${id}/execute`, { method: 'POST' });
+export const executeWorkflow = (id) => request(`/api/workflows/${id}/execute`, { method: 'POST', body: {} });
 
 // Oversight
 export const getOversightQueue = (status = 'pending') => request(`/api/oversight/queue?status=${status}`);

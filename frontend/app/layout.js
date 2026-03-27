@@ -3,8 +3,8 @@ import { AuthProvider } from '@/lib/auth';
 import AppLayout from '@/components/AppLayout';
 
 export const metadata = {
-    title: 'AI Agent Command Center',
-    description: 'Launch, monitor, and control multiple AI agents with human oversight',
+    title: 'Chakraview',
+    description: 'Next-generation neural orchestration and agentic control',
 };
 
 export default function RootLayout({ children }) {

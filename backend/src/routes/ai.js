@@ -9,7 +9,7 @@ export default async function aiRoutes(fastify) {
         }
 
         try {
-            const workspaceId = request.user.workspaceId;
+            const workspaceId = request.user.workspace_id;
             const openai = getOpenAIClient(workspaceId);
             const prompt = `You are an expert AI orchestrator. Given the task title "${title}" ${context ? `and context "${context}"` : ''}, generate a detailed, professional, and actionable instruction prompt for an AI agent to execute this task perfectly. The prompt should be concise but comprehensive. Just return the prompt text, no headers or conversational filler.`;
 

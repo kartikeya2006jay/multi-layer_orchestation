@@ -36,8 +36,29 @@ async function start() {
         try {
             await request.jwtVerify();
         } catch (err) {
-            reply.send(err);
+            reply.code(401).send({ error: 'Authentication failed', details: err.message });
         }
+    });
+
+    fastify.setErrorHandler((error, request, reply) => {
+        const statusCode = error.statusCode || (error.message.includes('not found') ? 404 : 400);
+
+        // Log detailed error context
+        console.error(`[CRITICAL ERROR] ${request.method} ${request.url}`);
+        console.error(`Message: ${error.message}`);
+        console.error(`Stack: ${error.stack}`);
+        if (error.validation) console.error(`Validation: ${JSON.stringify(error.validation)}`);
+        if (request.body) console.error(`Body: ${JSON.stringify(request.body)}`);
+
+        if (statusCode === 400) {
+            return reply.code(400).send({
+                error: 'Bad Request',
+                message: error.message,
+                details: error.validation || undefined
+            });
+        }
+
+        reply.code(statusCode).send({ error: error.message || 'Internal Server Error' });
     });
 
     // Initialize database
@@ -56,13 +77,13 @@ async function start() {
     await fastify.register(wsRoutes);
 
     fastify.get('/', async () => {
-        return { status: 'running', service: 'AI Agent Command Center' };
+        return { status: 'running', service: 'Chakraview Neural Core' };
     });
 
     // Start server
     try {
         const address = await fastify.listen({ port: PORT, host: HOST });
-        console.log(`\n🚀 AI Agent Command Center Backend running on ${address}`);
+        console.log(`\n🚀 Chakraview Neural Core running on ${address}`);
         console.log(`📡 WebSocket available at ws://${HOST}:${PORT}/ws`);
         console.log(`🔑 OpenAI API: ${process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here' ? 'Configured ✅' : 'Not configured ❌'}\n`);
     } catch (err) {

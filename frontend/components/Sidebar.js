@@ -53,11 +53,11 @@ export default function Sidebar() {
                         🧠
                     </div>
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '-0.5px' }}>
-                            Antigravity
+                        <div style={{ fontWeight: 800, fontSize: '20px', letterSpacing: '-1px' }}>
+                            Chakraview
                         </div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Orchestrator
+                        <div style={{ fontSize: '10px', color: 'var(--accent-blue)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            Neural Core
                         </div>
                     </div>
                 </div>

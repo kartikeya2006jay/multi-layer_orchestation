@@ -1,3 +1,6 @@
 {
+  "/workflows/page": "app/workflows/page.js",
+  "/oversight/page": "app/oversight/page.js",
+  "/analytics/page": "app/analytics/page.js",
   "/page": "app/page.js"
 }

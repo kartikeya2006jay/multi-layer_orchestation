@@ -2,7 +2,7 @@
     "name": "ai-agent-command-center-backend",
     "version": "1.0.0",
     "type": "module",
-    "description": "Backend for AI Agent Command Center",
+    "description": "Chakraview — Next-generation neural orchestration engine",
     "main": "src/index.js",
     "scripts": {
         "start": "node src/index.js",
