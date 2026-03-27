@@ -1,10 +1,9 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import TaskGraph from '@/components/TaskGraph';
 import { getTasks, launchTask, cancelTask, getTaskLogs, getAgents, suggestInput } from '@/lib/api';
 import { useWebSocket } from '@/lib/websocket';
-import { formatIST } from '@/lib/time';
-import { exportToCSV } from '@/lib/export';
 
 export default function TasksPage() {
     const [tasks, setTasks] = useState([]);
@@ -157,18 +156,10 @@ export default function TasksPage() {
                         <span>{tasks.filter(t => t.status === 'running').length} <small>LIVE</small></span>
                     </div>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => exportToCSV(tasks, 'task_manifest.csv')} style={{ height: '42px', padding: '0 20px' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        EXPORT_MANIFEST
-                    </button>
-                    <button className="launch-mission-btn" onClick={() => setShowModal(true)}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                        INIT_NEW_MISSION
-                    </button>
-                </div>
+                <button className="launch-mission-btn" onClick={() => setShowModal(true)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                    INIT_NEW_MISSION
+                </button>
             </div>
 
             {/* Filters */}
@@ -267,7 +258,7 @@ export default function TasksPage() {
             )}
 
             {/* Launch Modal */}
-            {showModal && (
+            {showModal && createPortal(
                 <div className="modal-overlay modal-overlay-top" onClick={() => setShowModal(false)}>
                     <div className="modal technical-init-modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-technical-header">
@@ -301,23 +292,21 @@ export default function TasksPage() {
                                         <textarea className="tech-textarea" value={form.input} onChange={e => setForm({ ...form, input: e.target.value })}
                                             placeholder="Enter detailed execution instructions..." />
                                     </div>
-                                    <div className="form-row-2">
-                                        <div className="form-item">
-                                            <label>OPERATIVE_ASSIGNMENT</label>
-                                            <select className="tech-select" value={form.agentId} onChange={e => setForm({ ...form, agentId: e.target.value })}>
-                                                <option value="">AUTO_KERNEL_SELECT</option>
-                                                {agents.map(a => <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="form-item">
-                                            <label>THREAT_PRIORITY_LVL</label>
-                                            <select className="tech-select" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}>
-                                                <option value="low">LOW</option>
-                                                <option value="medium">MEDIUM</option>
-                                                <option value="high">HIGH</option>
-                                                <option value="critical">CRITICAL_V1</option>
-                                            </select>
-                                        </div>
+                                    <div className="form-item">
+                                        <label>OPERATIVE_ASSIGNMENT</label>
+                                        <select className="tech-select" value={form.agentId} onChange={e => setForm({ ...form, agentId: e.target.value })}>
+                                            <option value="">AUTO_KERNEL_SELECT</option>
+                                            {agents.map(a => <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="form-item">
+                                        <label>THREAT_PRIORITY_LVL</label>
+                                        <select className="tech-select" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}>
+                                            <option value="low">LOW</option>
+                                            <option value="medium">MEDIUM</option>
+                                            <option value="high">HIGH</option>
+                                            <option value="critical">CRITICAL_V1</option>
+                                        </select>
                                     </div>
                                 </div>
                             </form>
@@ -327,11 +316,12 @@ export default function TasksPage() {
                             <button type="submit" form="launch-form" className="btn-launch-sequence">EXECUTE_DEPLOYMENT_OK</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Mission Logs Modal */}
-            {showLogs && (
+            {showLogs && createPortal(
                 <div className="modal-overlay" onClick={() => setShowLogs(null)}>
                     <div className="modal info-modal logs-modal animate-in" onClick={e => e.stopPropagation()}>
                         <div className="modal-technical-header">
@@ -348,7 +338,7 @@ export default function TasksPage() {
                                 <div className="technical-log-container">
                                     {logs.map((log, i) => (
                                         <div key={i} className="tech-log-row">
-                                            <span className="log-ts">[{formatIST(log.created_at)}]</span>
+                                            <span className="log-ts">[{new Date(log.created_at).toLocaleTimeString()}]</span>
                                             <span className={`log-lvl lvl-${log.level.toLowerCase()}`}>{log.level.toUpperCase()}</span>
                                             <span className="log-msg">{log.message}</span>
                                         </div>
@@ -360,11 +350,12 @@ export default function TasksPage() {
                             <button className="btn-cancel" onClick={() => setShowLogs(null)}>DISMISS_MANIFEST</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Execution Topology Modal */}
-            {showGraph && (
+            {showGraph && createPortal(
                 <div className="modal-overlay" onClick={() => setShowGraph(null)}>
                     <div className="modal info-modal flow-modal animate-in" onClick={e => e.stopPropagation()}>
                         <div className="modal-technical-header">
@@ -383,10 +374,11 @@ export default function TasksPage() {
                             <button className="btn-cancel" onClick={() => setShowGraph(null)}>CLOSE_TOPOLOGY</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            <style jsx>{`
+            <style jsx global>{`
                 .tasks-container { min-height: 100vh; }
 
                 /* Header & Meta */
@@ -468,8 +460,7 @@ export default function TasksPage() {
                 .kill-btn:hover { color: var(--accent-red); border-color: var(--accent-red); }
 
                 /* ===== MODAL OVERLAYS ===== */
-                /* ===== MODAL OVERLAYS ===== */
-                .modal-overlay { position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(5, 6, 10, 0.95); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; overflow: hidden; }
+                .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 6, 10, 0.98); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; overflow: hidden; }
                 .modal-overlay-top { align-items: flex-start; padding-top: 60px; overflow-y: auto; }
                 .terminal-overlay { background: rgba(0, 0, 0, 0.98); }
 
@@ -487,7 +478,7 @@ export default function TasksPage() {
 
                 /* ===== MISSION INFO MODALS (Logs/Topology) ===== */
                 /* ===== MISSION INFO MODALS (Logs/Topology) ===== */
-                .info-modal { width: 95vw; max-width: 1200px; height: 85vh; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 100px rgba(0,0,0,0.9); }
+                .info-modal { width: 95vw; max-width: 1200px; height: 85vh; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 100px rgba(0,0,0,0.9); margin: auto; flex-shrink: 0; }
                 .flow-modal { max-width: 1300px; }
                 
                 .technical-log-container { padding: 24px; display: flex; flex-direction: column; gap: 4px; font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.2); }
@@ -505,11 +496,7 @@ export default function TasksPage() {
                 .flow-graph-wrapper::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; }
 
                 /* ===== MISSION INITIATOR MODAL ===== */
-                .technical-init-modal { max-width: 760px; max-height: calc(100vh - 120px); }
-                .modal-body { padding: 32px; }
-                .form-grid { display: flex; flex-direction: column; gap: 24px; }
-                .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-                .form-item label { display: block; font-size: 10px; font-weight: 950; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
+                .technical-init-modal { max-width: 660px; max-height: calc(100vh - 120px); }
                 .technical-form { padding: 28px 28px 8px; }
                 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
                 .form-item.full { grid-column: span 2; }
