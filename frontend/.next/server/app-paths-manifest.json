@@ -1,7 +1,7 @@
 {
-  "/tasks/page": "app/tasks/page.js",
   "/login/page": "app/login/page.js",
   "/signup/page": "app/signup/page.js",
   "/agents/page": "app/agents/page.js",
-  "/workflows/page": "app/workflows/page.js"
+  "/tasks/page": "app/tasks/page.js",
+  "/page": "app/page.js"
 }

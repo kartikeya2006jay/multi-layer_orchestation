@@ -94,11 +94,10 @@ export default function TaskGraph({ taskId }) {
 
             <style jsx>{`
                 .task-graph-container {
-                    padding: 40px 20px;
-                    overflow-x: auto;
-                    min-height: 400px;
+                    padding: 20px;
                     display: flex;
                     justify-content: center;
+                    width: 100%;
                 }
                 .nodes-flow {
                     display: flex;
@@ -106,7 +105,7 @@ export default function TaskGraph({ taskId }) {
                     align-items: center;
                     gap: 0;
                     width: 100%;
-                    max-width: 700px;
+                    max-width: 600px;
                 }
                 .node-wrapper {
                     display: flex;
@@ -117,22 +116,22 @@ export default function TaskGraph({ taskId }) {
                 }
                 .graph-node {
                     width: 100%;
-                    padding: 28px;
+                    padding: 16px 20px;
                     display: flex;
-                    gap: 24px;
-                    margin: 12px 0;
-                    border: 1px solid var(--border-glass);
-                    background: rgba(13, 15, 23, 0.4);
+                    gap: 16px;
+                    margin: 8px 0;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    background: rgba(13, 15, 23, 0.8);
                     backdrop-filter: blur(10px);
                     transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
                     position: relative;
                     z-index: 2;
-                    border-radius: 16px;
+                    border-radius: 12px;
                 }
                 .graph-node:hover {
-                    transform: translateX(8px);
-                    background: rgba(13, 15, 23, 0.6);
-                    border-color: rgba(255, 255, 255, 0.2);
+                    transform: translateY(-2px);
+                    background: rgba(20, 22, 33, 0.95);
+                    border-color: var(--accent-blue);
                 }
                 .status-running {
                     border-color: var(--accent-blue);
@@ -140,7 +139,7 @@ export default function TaskGraph({ taskId }) {
                     color: var(--accent-blue);
                 }
                 .status-success {
-                    border-color: rgba(16, 185, 129, 0.3);
+                    border-color: rgba(16, 185, 129, 0.4);
                     color: var(--accent-green);
                 }
                 .status-failed {
@@ -148,11 +147,11 @@ export default function TaskGraph({ taskId }) {
                     color: var(--accent-red);
                 }
                 .node-icon {
-                    width: 44px;
-                    height: 44px;
+                    width: 36px;
+                    height: 36px;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.05);
-                    border-radius: 12px;
+                    border-radius: 8px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -164,21 +163,21 @@ export default function TaskGraph({ taskId }) {
                     min-width: 0;
                 }
                 .node-step-label {
-                    font-size: 9px;
+                    font-size: 8px;
                     font-weight: 900;
-                    letter-spacing: 1.5px;
+                    letter-spacing: 1.2px;
                     opacity: 0.5;
-                    margin-bottom: 4px;
+                    margin-bottom: 2px;
                     color: var(--text-primary);
                 }
                 .node-name {
                     font-weight: 800;
-                    font-size: 17px;
+                    font-size: 15px;
                     color: var(--text-primary);
-                    letter-spacing: -0.3px;
+                    letter-spacing: -0.2px;
                 }
                 .node-time {
-                    font-size: 11px;
+                    font-size: 10px;
                     font-family: var(--font-mono);
                     opacity: 0.4;
                     font-weight: 600;
@@ -186,63 +185,63 @@ export default function TaskGraph({ taskId }) {
                 .node-meta-row {
                     display: flex;
                     align-items: center;
-                    gap: 12px;
-                    margin-top: 8px;
+                    gap: 10px;
+                    margin-top: 4px;
                 }
                 .node-status-badge {
-                    font-size: 10px;
+                    font-size: 9px;
                     text-transform: uppercase;
-                    letter-spacing: 1px;
-                    font-weight: 900;
+                    letter-spacing: 0.8px;
+                    font-weight: 950;
                     opacity: 0.8;
                 }
                 .node-duration {
-                    font-size: 10px;
-                    font-weight: 700;
-                    opacity: 0.4;
-                    padding-left: 12px;
+                    font-size: 9px;
+                    font-weight: 800;
+                    opacity: 0.3;
+                    padding-left: 10px;
                     border-left: 1px solid rgba(255,255,255,0.1);
                 }
                 .node-output-container {
-                    margin-top: 20px;
-                    background: rgba(0, 0, 0, 0.25);
-                    border: 1px solid rgba(255, 255, 255, 0.03);
-                    border-radius: 10px;
+                    margin-top: 12px;
+                    background: rgba(0, 0, 0, 0.3);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 8px;
                     overflow: hidden;
                 }
                 .output-header {
-                    font-size: 8px;
-                    font-weight: 900;
+                    font-size: 7.5px;
+                    font-weight: 950;
                     letter-spacing: 1px;
-                    padding: 6px 12px;
-                    background: rgba(255,255,255,0.02);
-                    opacity: 0.4;
-                    border-bottom: 1px solid rgba(255,255,255,0.03);
+                    padding: 4px 10px;
+                    background: rgba(255,255,255,0.03);
+                    opacity: 0.5;
+                    border-bottom: 1px solid rgba(255,255,255,0.04);
                 }
                 .node-output-preview {
-                    padding: 12px;
-                    font-size: 12px;
+                    padding: 10px;
+                    font-size: 11px;
                     color: var(--text-secondary);
                     font-family: var(--font-mono);
-                    line-height: 1.6;
-                    max-height: 120px;
+                    line-height: 1.4;
+                    max-height: 80px;
                     overflow-y: auto;
                 }
                 .connector {
                     width: 2px;
-                    height: 24px;
-                    background: rgba(255, 255, 255, 0.05);
+                    height: 16px;
+                    background: rgba(255, 255, 255, 0.08);
                     position: relative;
                     z-index: 1;
                 }
                 .connector-active {
                     background: var(--accent-green);
-                    box-shadow: 0 0 15px var(--accent-green);
+                    box-shadow: 0 0 10px var(--accent-green);
                 }
                 .connector-pulse {
                     position: absolute;
                     top: 0; left: 50%;
-                    width: 4px; height: 4px;
+                    width: 3px; height: 3px;
                     background: white;
                     border-radius: 50%;
                     transform: translateX(-50%);
@@ -259,6 +258,7 @@ export default function TaskGraph({ taskId }) {
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .spin { animation: spin 2s linear infinite; }
             `}</style>
+
         </div>
     );
 }

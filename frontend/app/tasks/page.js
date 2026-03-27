@@ -74,7 +74,16 @@ export default function TasksPage() {
             }
         }, 1200);
         return () => clearTimeout(timer);
-    }, [form.title, showModal]);
+    }, [form.title, showModal, handleSuggest, suggesting]);
+
+    useEffect(() => {
+        if (showModal || showLogs || showGraph) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [showModal, showLogs, showGraph]);
 
     const handleCancel = async (id) => {
         if (!confirm('Cancel this task?')) return;
@@ -309,10 +318,10 @@ export default function TasksPage() {
                 </div>
             )}
 
-            {/* Logs Modal */}
+            {/* Mission Logs Modal */}
             {showLogs && (
                 <div className="modal-overlay" onClick={() => setShowLogs(null)}>
-                    <div className="modal log-modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal info-modal logs-modal animate-in" onClick={e => e.stopPropagation()}>
                         <div className="modal-technical-header">
                             <div className="title-group">
                                 <span className="m-tag">LOG_MANIFEST_{showLogs.slice(0, 8).toUpperCase()}</span>
@@ -328,7 +337,7 @@ export default function TasksPage() {
                                     {logs.map((log, i) => (
                                         <div key={i} className="tech-log-row">
                                             <span className="log-ts">[{new Date(log.created_at).toLocaleTimeString()}]</span>
-                                            <span className={`log-lvl lvl-${log.level}`}>{log.level.toUpperCase()}</span>
+                                            <span className={`log-lvl lvl-${log.level.toLowerCase()}`}>{log.level.toUpperCase()}</span>
                                             <span className="log-msg">{log.message}</span>
                                         </div>
                                     ))}
@@ -342,10 +351,10 @@ export default function TasksPage() {
                 </div>
             )}
 
-            {/* Flow Graph Modal */}
+            {/* Execution Topology Modal */}
             {showGraph && (
                 <div className="modal-overlay" onClick={() => setShowGraph(null)}>
-                    <div className="modal flow-modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal info-modal flow-modal animate-in" onClick={e => e.stopPropagation()}>
                         <div className="modal-technical-header">
                             <div className="title-group">
                                 <span className="m-tag">DEPLOY_FLOW_OVR</span>
@@ -447,8 +456,10 @@ export default function TasksPage() {
                 .kill-btn:hover { color: var(--accent-red); border-color: var(--accent-red); }
 
                 /* ===== MODAL OVERLAYS ===== */
-                .modal-overlay { position: fixed; inset: 0; background: rgba(5, 6, 10, 0.92); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 32px; overflow: hidden; }
+                /* ===== MODAL OVERLAYS ===== */
+                .modal-overlay { position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(5, 6, 10, 0.95); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; overflow: hidden; }
                 .modal-overlay-top { align-items: flex-start; padding-top: 60px; overflow-y: auto; }
+                .terminal-overlay { background: rgba(0, 0, 0, 0.98); }
 
                 .modal { background: #0d0f17; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; box-shadow: 0 40px 120px rgba(0,0,0,0.9); width: 100%; display: flex; flex-direction: column; overflow: hidden; animation: scaleIn 0.35s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
                 @keyframes scaleIn { from { transform: scale(0.96) translateY(-16px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
@@ -461,6 +472,25 @@ export default function TasksPage() {
 
                 .modal-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0; }
                 .modal-technical-actions { padding: 18px 28px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 16px; flex-shrink: 0; background: rgba(13, 15, 23, 0.6); }
+
+                /* ===== MISSION INFO MODALS (Logs/Topology) ===== */
+                /* ===== MISSION INFO MODALS (Logs/Topology) ===== */
+                .info-modal { width: 95vw; max-width: 1200px; height: 85vh; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 100px rgba(0,0,0,0.9); }
+                .flow-modal { max-width: 1300px; }
+                
+                .technical-log-container { padding: 24px; display: flex; flex-direction: column; gap: 4px; font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.2); }
+                .tech-log-row { display: flex; gap: 16px; padding: 8px 12px; border-radius: 6px; transition: background 0.2s; }
+                .tech-log-row:hover { background: rgba(255,255,255,0.02); }
+                .log-ts { color: var(--accent-blue); opacity: 0.6; min-width: 85px; font-size: 11px; }
+                .log-lvl { font-weight: 800; min-width: 50px; }
+                .lvl-info { color: #06b6d4; }
+                .lvl-error { color: #ef4444; }
+                .lvl-warn { color: #f59e0b; }
+                .log-msg { color: #d4d4d8; word-break: break-word; }
+                .empty-logs { padding: 100px; text-align: center; color: var(--text-muted); font-weight: 950; letter-spacing: 2px; opacity: 0.3; font-size: 12px; }
+
+                .flow-graph-wrapper { padding: 32px; position: relative; }
+                .flow-graph-wrapper::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; }
 
                 /* ===== MISSION INITIATOR MODAL ===== */
                 .technical-init-modal { max-width: 660px; max-height: calc(100vh - 120px); }
@@ -482,36 +512,16 @@ export default function TasksPage() {
                 .btn-launch-sequence { flex: 2; height: 42px; background: var(--accent-blue); border: none; border-radius: 6px; color: #000; font-weight: 950; font-size: 10px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
                 .btn-launch-sequence:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(59, 130, 246, 0.4); }
 
-                /* ===== LOGS MODAL ===== */
-                .log-modal { max-width: 860px; height: calc(100vh - 64px); }
-                .log-body { background: #06070d; padding: 0; }
-                .technical-log-container { padding: 20px 24px; }
-                .tech-log-row { font-family: var(--font-mono); font-size: 12px; display: grid; grid-template-columns: 110px 55px 1fr; gap: 12px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); line-height: 1.5; }
-                .tech-log-row:last-child { border-bottom: none; }
-                .log-ts { color: var(--accent-blue); font-weight: 500; font-size: 11px; white-space: nowrap; }
-                .log-lvl { font-weight: 800; font-size: 10px; letter-spacing: 0.5px; text-align: center; padding: 2px 6px; border-radius: 3px; }
-                .lvl-info { color: var(--accent-cyan); background: rgba(6,182,212,0.08); }
-                .lvl-error { color: #ef4444; background: rgba(239,68,68,0.08); }
-                .lvl-warn { color: #f59e0b; background: rgba(245,158,11,0.08); }
-                .log-msg { color: #d4d4d8; word-break: break-word; }
-                .empty-logs { padding: 60px 28px; text-align: center; color: var(--text-muted); font-size: 13px; letter-spacing: 2px; }
-
-                /* ===== TOPOLOGY MODAL ===== */
-                .flow-modal { max-width: 760px; height: calc(100vh - 64px); }
-                .flow-body { background: #06070d; padding: 0; }
-                .flow-graph-wrapper { height: 100%; overflow-y: auto; overflow-x: hidden; }
-
                 .empty-state-hub { padding: 100px 40px; text-align: center; }
                 .empty-visual { color: var(--text-muted); opacity: 0.2; margin-bottom: 32px; }
-                .empty-state-hub h3 { font-size: 20px; font-weight: 950; letter-spacing: 4px; color: var(--text-muted); margin-bottom: 12px; }
-                .empty-state-hub p { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
-
                 .animate-in { animation: slideUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards; opacity: 0; }
                 @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
                 .glass-card { background: var(--bg-glass); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; backdrop-filter: blur(24px); position: relative; overflow: hidden; }
                 .btn-technical { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; padding: 14px; border-radius: 8px; font-size: 11px; font-weight: 950; letter-spacing: 2px; cursor: pointer; }
             `}</style>
+
+
         </div>
     );
 }

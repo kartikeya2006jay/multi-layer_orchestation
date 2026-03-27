@@ -188,73 +188,101 @@ export default function AgentsPage() {
             {/* Modal */}
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px', width: '90%', padding: '0', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border-glass)' }}>
-                            <h2 style={{ margin: 0, fontSize: '20px' }}>{editAgent ? 'Edit Neural Agent' : 'Initialize New Agent'}</h2>
+                    <div className="modal agent-init-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-technical-header">
+                            <div className="title-group">
+                                <span className="m-tag">{editAgent ? 'EDIT_NEURAL_v2' : 'INIT_AGENT_v4'}</span>
+                                <h2>{editAgent ? 'Edit Neural Operative' : 'Initialize New Operative'}</h2>
+                            </div>
+                            <button className="close-x" onClick={() => setShowModal(false)}>&times;</button>
                         </div>
 
-                        <div style={{ padding: '32px', overflowY: 'auto', maxHeigh: 'calc(90vh - 140px)' }}>
-                            <form onSubmit={handleSubmit}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
-                                    {/* Left Column */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                        <div className="form-group" style={{ margin: 0 }}>
-                                            <label className="form-label">Agent Name *</label>
-                                            <input className="form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required placeholder="e.g. Analysis Unit" />
-                                        </div>
-                                        <div className="form-group" style={{ margin: 0 }}>
-                                            <label className="form-label">Description</label>
-                                            <input className="form-input" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Operational brief" />
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                            <div className="form-group" style={{ margin: 0 }}>
-                                                <label className="form-label">Model</label>
-                                                <select className="form-select" value={form.model} onChange={e => setForm({ ...form, model: e.target.value })}>
-                                                    <option value="gpt-4o">GPT-4o</option>
-                                                    <option value="gpt-4o-mini">GPT-4o Mini</option>
-                                                    <option value="o1">O1</option>
-                                                    <option value="o1-mini">O1 Mini</option>
-                                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                                                    <option value="gpt-4">GPT-4</option>
-                                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                                                </select>
-                                            </div>
-                                            <div className="form-group" style={{ margin: 0 }}>
-                                                <label className="form-label">Temp ({form.temperature})</label>
-                                                <input type="range" min="0" max="2" step="0.1" value={form.temperature}
-                                                    onChange={e => setForm({ ...form, temperature: e.target.value })}
-                                                    style={{ width: '100%', marginTop: '10px' }} />
-                                            </div>
-                                        </div>
-                                        <div className="form-group" style={{ margin: 0 }}>
-                                            <label className="form-label">Capabilities</label>
-                                            <input className="form-input" value={form.capabilities} onChange={e => setForm({ ...form, capabilities: e.target.value })}
-                                                placeholder="news, coding, search..." />
-                                        </div>
+                        <div className="modal-body agent-form-body">
+                            <form id="agent-form" onSubmit={handleSubmit} className="technical-form">
+                                <div className="form-grid">
+                                    <div className="form-item">
+                                        <label>OPERATIVE_NAME_TAG *</label>
+                                        <input className="tech-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required placeholder="e.g. Analysis Unit" />
                                     </div>
-
-                                    {/* Right Column */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                        <div className="form-group" style={{ margin: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                            <label className="form-label">System Prompt / Logic</label>
-                                            <textarea className="form-textarea" value={form.system_prompt} onChange={e => setForm({ ...form, system_prompt: e.target.value })}
-                                                placeholder="Define agent behavior..."
-                                                style={{ flex: 1, minHeight: '220px', fontSize: '13px', lineHeight: '1.5' }} />
-                                        </div>
+                                    <div className="form-item">
+                                        <label>OPERATIONAL_BRIEF</label>
+                                        <input className="tech-input" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Mission context" />
                                     </div>
-                                </div>
-
-                                <div className="modal-actions" style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--border-glass)' }}>
-                                    <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-                                    <button type="submit" className="btn btn-primary" style={{ padding: '12px 32px' }}>
-                                        {editAgent ? 'Save Changes' : 'Initialize Agent'}
-                                    </button>
+                                    <div className="form-item">
+                                        <label>NEURAL_ARCHITECTURE</label>
+                                        <select className="tech-select" value={form.model} onChange={e => setForm({ ...form, model: e.target.value })}>
+                                            <option value="gpt-4o">GPT-4o</option>
+                                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                                            <option value="o1">O1_HEAVY</option>
+                                            <option value="o1-mini">O1_MINI</option>
+                                            <option value="gpt-4-turbo">GPT-4_TURBO</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-item">
+                                        <label>COGNITIVE_TEMP ({form.temperature})</label>
+                                        <input type="range" min="0" max="2" step="0.1" value={form.temperature}
+                                            onChange={e => setForm({ ...form, temperature: e.target.value })}
+                                            className="tech-range" />
+                                    </div>
+                                    <div className="form-item full">
+                                        <label>SUBSYSTEM_CAPABILITIES</label>
+                                        <input className="tech-input" value={form.capabilities} onChange={e => setForm({ ...form, capabilities: e.target.value })}
+                                            placeholder="news, coding, searching, creative..." />
+                                    </div>
+                                    <div className="form-item full">
+                                        <label>PRIMARY_LOGIC_DIRECTIVE</label>
+                                        <textarea className="tech-textarea" value={form.system_prompt} onChange={e => setForm({ ...form, system_prompt: e.target.value })}
+                                            placeholder="Define core agent behavior and constraints..." />
+                                    </div>
                                 </div>
                             </form>
+                        </div>
+                        <div className="modal-technical-actions">
+                            <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>ABORT_INIT</button>
+                            <button type="submit" form="agent-form" className="btn-launch-sequence">COMMIT_NEURAL_STAKE</button>
                         </div>
                     </div>
                 </div>
             )}
+
+            <style jsx>{`
+                .modal-overlay { position: fixed; inset: 0; background: rgba(5, 6, 10, 0.92); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; overflow: hidden; }
+                .modal { background: #0d0f17; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; box-shadow: 0 40px 120px rgba(0,0,0,0.9); width: 100%; display: flex; flex-direction: column; overflow: hidden; animation: scaleIn 0.35s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+                @keyframes scaleIn { from { transform: scale(0.96) translateY(-8px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+                .modal-technical-header { background: rgba(255,255,255,0.02); padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+                .m-tag { font-size: 8px; font-weight: 950; letter-spacing: 4px; color: var(--accent-blue); display: block; margin-bottom: 2px; }
+                .modal-technical-header h2 { font-size: 15px; font-weight: 950; color: #fff; margin: 0; letter-spacing: -0.3px; }
+                .close-x { background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1; padding: 4px; transition: color 0.2s; flex-shrink: 0; }
+                .close-x:hover { color: #fff; }
+
+                .modal-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0; }
+                .agent-form-body { max-height: calc(100vh - 100px); }
+                .modal-technical-actions { padding: 10px 18px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 10px; flex-shrink: 0; background: rgba(13, 15, 23, 0.6); }
+                .agent-init-modal { max-width: 580px; }
+                .technical-form { padding: 12px 18px; }
+                .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+                .form-item.full { grid-column: span 2; }
+                .form-item label { display: block; font-size: 8.5px; font-weight: 800; color: var(--text-secondary); letter-spacing: 1.2px; margin-bottom: 2px; text-transform: uppercase; }
+
+                .tech-input, .tech-select, .tech-textarea { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 12px; color: #fff; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s; font-family: inherit; }
+                .tech-input:focus, .tech-select:focus, .tech-textarea:focus { border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.05); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
+                .tech-select option { background: #05060a; color: #fff; }
+                .tech-textarea { min-height: 50px; max-height: 80px; resize: vertical; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.3; }
+                .tech-range { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; outline: none; appearance: none; margin-top: 4px; }
+                .tech-range::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent-blue); cursor: pointer; box-shadow: 0 0 8px var(--accent-blue); }
+
+                .btn-cancel { flex: 1; height: 34px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: var(--text-muted); font-weight: 950; font-size: 9px; letter-spacing: 2px; cursor: pointer; }
+                .btn-launch-sequence { flex: 2; height: 34px; background: var(--accent-blue); border: none; border-radius: 6px; color: #000; font-weight: 950; font-size: 9px; letter-spacing: 2px; cursor: pointer; }
+                .btn-launch-sequence:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+                .btn-launch-sequence:hover { transform: translateY(-1px); box-shadow: 0 0 24px rgba(59, 130, 246, 0.4); }
+
+                .status-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+                .status-active { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+                .status-idle { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+            `}</style>
+
+
         </div>
     );
 }
