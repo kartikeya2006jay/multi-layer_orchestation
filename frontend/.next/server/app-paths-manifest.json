@@ -1,7 +1,7 @@
 {
   "/page": "app/page.js",
-  "/schemas/page": "app/schemas/page.js",
   "/agents/page": "app/agents/page.js",
   "/tasks/page": "app/tasks/page.js",
-  "/billing/page": "app/billing/page.js"
+  "/billing/page": "app/billing/page.js",
+  "/workflows/page": "app/workflows/page.js"
 }

@@ -568,16 +568,17 @@ function ArchitectureShowcase() {
             title: 'Neural Core Platform',
             description: 'A unified intelligence layer that orchestrates across your entire enterprise ecosystem.',
             analysis: {
-                summary: 'Imagine the Neural Core as a central digital brain that connects everything. It receives instructions, decides which specialized tools to use, and ensures all your AI agents are working in perfect harmony.',
+                summary: 'The Neural Core serves as the central intelligence operative of your enterprise. It acts as a high-speed orchestrator that autonomously routes intent, verifies security protocols, and executes multi-agent missions with sub-millisecond precision.',
+                metrics: { latency: '14ms', confidence: '99.9%', nodes: '256+' },
                 flow: [
-                    { step: 'INPUT GATE', label: 'Instruction Received', desc: 'The system captures user intent via Slack, Teams, or API.' },
-                    { step: 'NEURAL HUB', label: 'Intent Analysis', desc: 'The core brain decides exactly what needs to be done.' },
-                    { step: 'RESOURCE MESH', label: 'Tool Allocation', desc: 'The system selects the best agents and tools for the job.' },
-                    { step: 'EXECUTION LOOP', label: 'Parallel Processing', desc: 'Multiple agents work together to fulfill the request.' }
+                    { step: 'INTENT CAPTURE', label: 'Semantic Ingestion', icon: 'M12 2v20M2 12h20', desc: 'Real-time ingestion of intent from global enterprise endpoints (Slack, Teams, API).' },
+                    { step: 'STRATEGIC HUB', label: 'Mission Synthesis', icon: 'M12 2L2 7l10 5 10-5-10-5z', desc: 'The core brain autonomously decomposes instructions into a multi-step roadmap.' },
+                    { step: 'NEURAL ROUTING', label: 'Autonomous Allocation', icon: 'M12 22s8-4.5 8-11.8A8 8 0 0012 2a8 8 0 00-8 8.2c0 7.3 8 11.8 8 11.8z', desc: 'Distributing specialized sub-tasks to the most qualified expert agents in the fleet.' },
+                    { step: 'COLLECTIVE FUSION', label: 'High-Integrity Output', icon: 'M12 22V12M2 12h20', desc: 'Aggregating diverse agent outputs into a unified, verified, and actionable solution.' }
                 ],
                 files: [
-                    { path: 'backend/src/routes/tasks.js', description: 'The main controller for all system operations.' },
-                    { path: 'backend/src/index.js', description: 'The entry point where all connections are managed.' }
+                    { path: 'backend/src/routes/tasks.js', description: 'Core mission controller.' },
+                    { path: 'backend/src/index.js', description: 'System entry gateway.' }
                 ]
             },
             icon: (
@@ -591,16 +592,17 @@ function ArchitectureShowcase() {
             title: 'Intelligent Search Fusion',
             description: 'Combining semantic search with agentic execution to solve problems, not just find answers.',
             analysis: {
-                summary: 'Unlike simple search, this system doesn\'t just match keywords. It understands the "meaning" of your query and scans through your entire knowledge base to find the right facts, not just files.',
+                summary: 'Search Fusion redefines information retrieval by merging semantic depth with keyword precision. It doesn\'t just "find" files; it projects your query into a multi-dimensional knowledge space to extract the exact insights you need.',
+                metrics: { recall: '98.4%', depth: 'Neural', velocity: 'Fast' },
                 flow: [
-                    { step: 'SEMANTIC HUB', label: 'Meaning Extraction', desc: 'Translating your query into a mathematical concept (Vector).' },
-                    { step: 'KNOWLEDGE MESH', label: 'Deep Scanning', desc: 'Searching across databases and documents for context.' },
-                    { step: 'FUSION ENGINE', label: 'Hybrid Ranking', desc: 'Combining vector and keyword results for 99% accuracy.' },
-                    { step: 'GROUNDED DATA', label: 'Fact Verification', desc: 'Ensuring the answer is based on your real data.' }
+                    { step: 'DENSE PROJECTION', label: 'Space Mapping', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', desc: 'Transforming natural language queries into high-dimensional semantic vectors.' },
+                    { step: 'KNOWLEDGE MESH', label: 'Semantic Exploration', icon: 'M12 2v20M2 12h20', desc: 'Navigating millions of data points across your entire knowledge ecosystem simultaneously.' },
+                    { step: 'FUSION ENGINE', label: 'Neural Reranking', icon: 'M3 6h18M3 12h18M3 18h18', desc: 'Dynamically re-evaluating results based on context, relevance, and historical accuracy.' },
+                    { step: 'GROUNDED DATA', label: 'Fact Verification', icon: 'M22 11.08V12a10 10 0 11-5.93-9.14', desc: 'Delivering a verified, fact-checked response grounded directly in your secure data.' }
                 ],
                 files: [
-                    { path: 'backend/src/routes/ai.js', description: 'The logic that turns text into deep meaning.' },
-                    { path: 'backend/src/db/schema.js', description: 'The structure of your secure knowledge base.' }
+                    { path: 'backend/src/routes/ai.js', description: 'Neural parsing engine.' },
+                    { path: 'backend/src/db/schema.js', description: 'Knowledge mesh structure.' }
                 ]
             },
             icon: (
@@ -614,16 +616,17 @@ function ArchitectureShowcase() {
             title: 'o1 Reasoning Engine',
             description: 'Advanced NLP and reasoning that understands complex multihop queries and intent.',
             analysis: {
-                summary: 'This is the "Thinking" engine. It doesn\'t just respond instantly; it breaks down complex problems into steps, tests different solutions, and self-corrects if it finds a better way.',
+                summary: 'The o1 Reasoning Engine is the logical summit of the platform. It utilizes recursive thinking loops—allowing the system to "pause and ponder" complex problems before delivering a calculated, self-vetted response.',
+                metrics: { thoughts: 'Recursive', accuracy: 'Elite', steps: 'Multi' },
                 flow: [
-                    { step: 'PLANNER', label: 'Step-by-Step Plan', desc: 'The engine creates a roadmap for solving the problem.' },
-                    { step: 'TOOL EXECUTION', label: 'Active Doing', desc: 'The system actually runs code or fetches data.' },
-                    { step: 'REFLECTOR', label: 'Self-Critique', desc: 'The engine "reviews" its own work for errors.' },
-                    { step: 'FINAL LOGIC', label: 'Solution Synthesis', desc: 'Combining all steps into one perfect answer.' }
+                    { step: 'PREMISE ANALYSIS', label: 'Logic Deconstruction', icon: 'M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83', desc: 'Breaking down complex, multi-hop queries into fundamental logical primitives.' },
+                    { step: 'EXECUTION SIM', label: 'Path Simulation', icon: 'M23 4v6h-6M1 20v-6h6', desc: 'Virtually "testing" multiple solution paths before committing any system action.' },
+                    { step: 'NEURAL REFLECTOR', label: 'Self-Critique Audit', icon: 'M12 22s8-4.5 8-11.8A8 8 0 0012 2a8 8 0 00-8 8.2c0 7.3 8 11.8 8 11.8z', desc: 'Autonomous cross-validation where the core audits its own reasoning for accuracy.' },
+                    { step: 'SUCCESS SYNTHESIS', label: 'Optimal Solution', icon: 'M22 11.08V12a10 10 0 11-5.93-9.14', desc: 'Finalizing the highest-confidence, most computationally optimal solution path.' }
                 ],
                 files: [
-                    { path: 'backend/src/routes/ai.js', description: 'The portal to the o1-series thinking models.' },
-                    { path: 'backend/src/routes/tasks.js', description: 'The loop that allows for "thinking" before doing.' }
+                    { path: 'backend/src/routes/ai.js', description: 'Deep reasoning portal.' },
+                    { path: 'backend/src/routes/tasks.js', description: 'Thinking execution loops.' }
                 ]
             },
             icon: (
@@ -637,16 +640,17 @@ function ArchitectureShowcase() {
             title: 'Agent Studio',
             description: 'Extensible framework with Agent Studio for rapid deployment of specialized autonomous workers.',
             analysis: {
-                summary: 'Agent Studio is like a factory for AI. You can create a specialized worker for Any department (HR, Finance, Tech) by just telling it who it is, what it knows, and what tools it can use.',
+                summary: 'Agent Studio is the ultimate workspace for neural construction. It allows you to design, equip, and deploy elite AI specialists tailored to the unique operational goals of your business.',
+                metrics: { types: 'Custom', build: 'Low-Code', live: 'Fleet' },
                 flow: [
-                    { step: 'PERSONA', label: 'Define Identity', desc: 'Choosing how the agent should speak and act.' },
-                    { step: 'KNOWLEDGE', label: 'Upload Context', desc: 'Giving the agent access to specific documents.' },
-                    { step: 'TOOLS', label: 'Equip Skills', desc: 'Connecting the agent to your email, calendars, or databases.' },
-                    { step: 'DEPLOY', label: 'Go Live', desc: 'The agent starts its automated mission.' }
+                    { step: 'PROFILING', label: 'Persona Architect', icon: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 7a4 4 0 100-8 4 4 0 000 8z', desc: 'Defining the cognitive archetype, voice, and behavioral goals of your agent.' },
+                    { step: 'INJECTION', label: 'Knowledge Injection', icon: 'M12 2v20M2 12h20', desc: 'Grounding the agent with exclusive knowledge packs, docs, and secure data syncs.' },
+                    { step: 'SKILLSET', label: 'Skillset Acquisition', icon: 'M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z', desc: 'Connecting the agent to your mission-critical APIs, databases, and workspace tools.' },
+                    { step: 'ACTIVATION', label: 'Fleet Deployment', icon: 'M22 2l-7 20-4-9-9-4 20-7z', desc: 'Final neural compilation and deployment into the production fleet ecosystem.' }
                 ],
                 files: [
-                    { path: 'frontend/app/agents/page.js', description: 'The visual builder you see on your screen.' },
-                    { path: 'backend/src/routes/agents.js', description: 'The factory that generates the new AI personalities.' }
+                    { path: 'frontend/app/agents/page.js', description: 'Visual architect studio.' },
+                    { path: 'backend/src/routes/agents.js', description: 'Neural profile factory.' }
                 ]
             },
             icon: (
@@ -806,8 +810,8 @@ function ArchitectureShowcase() {
                                 width: '380px',
                                 maxHeight: 'calc(100% - 40px)',
                                 overflowY: 'auto',
-                                background: 'rgba(5, 6, 10, 0.99)',
-                                backdropFilter: 'blur(20px)',
+                                background: 'rgba(4, 5, 8, 0.99)',
+                                backdropFilter: 'blur(25px)',
                                 border: '1px solid var(--accent-blue)',
                                 borderRadius: '16px',
                                 padding: '32px',
@@ -830,31 +834,53 @@ function ArchitectureShowcase() {
                                     </button>
                                 </div>
 
-                                <div style={{ padding: '20px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.1)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'rgba(59, 130, 246, 0.03)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.1)' }}>
+                                    {Object.entries(currentTab.analysis.metrics || {}).map(([key, value], idx) => (
+                                        <div key={idx} style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 900 }}>{key}</div>
+                                            <div style={{ fontSize: '13px', color: 'var(--accent-blue)', fontWeight: 1000, fontFamily: 'var(--font-mono)' }}>{value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div style={{ padding: '20px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                                     <p style={{ fontSize: '13px', color: 'white', lineHeight: '1.7', fontWeight: 500 }}>
                                         {currentTab.analysis.summary}
                                     </p>
                                 </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    <h5 style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>How it works (Step-by-Step)</h5>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <h5 style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Operational Trace</h5>
                                     {currentTab.analysis.flow.map((f, i) => (
-                                        <div key={i} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
+                                        <div key={i} className="flow-step" style={{
+                                            display: 'flex',
+                                            gap: '16px',
+                                            position: 'relative',
+                                            animation: `reveal-step 0.4s ease-out forwards ${i * 0.2 + 0.3}s`,
+                                            opacity: 0,
+                                            transform: 'translateY(10px)'
+                                        }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                 <div style={{
-                                                    width: '24px', height: '24px', borderRadius: '50%',
-                                                    background: 'var(--accent-blue)',
-                                                    color: '#000', fontSize: '10px', fontWeight: 900,
+                                                    width: '32px', height: '32px', borderRadius: '8px',
+                                                    background: 'rgba(59, 130, 246, 0.1)',
+                                                    border: '1px solid var(--accent-blue)',
+                                                    color: 'var(--accent-blue)', fontSize: '12px',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     zIndex: 2,
                                                     boxShadow: '0 0 15px var(--accent-blue-glow)'
-                                                }}>{i + 1}</div>
+                                                }}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d={f.icon} />
+                                                    </svg>
+                                                </div>
                                                 {i < currentTab.analysis.flow.length - 1 && (
-                                                    <div style={{ flex: 1, width: '2px', background: 'linear-gradient(to bottom, var(--accent-blue), transparent)', margin: '4px 0' }}></div>
+                                                    <div style={{ flex: 1, width: '1px', background: 'var(--accent-blue-glow)', margin: '4px 0', opacity: 0.3 }}></div>
                                                 )}
                                             </div>
-                                            <div style={{ paddingBottom: '20px' }}>
-                                                <div style={{ fontSize: '12px', fontWeight: 900, color: 'var(--accent-cyan)', marginBottom: '4px' }}>{f.label}</div>
+                                            <div style={{ paddingBottom: '12px' }}>
+                                                <div style={{ fontSize: '12px', fontWeight: 1000, color: 'var(--text-primary)', marginBottom: '2px', letterSpacing: '0.5px' }}>{f.label}</div>
+                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{f.step}</div>
                                                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5', fontWeight: 500 }}>{f.desc}</div>
                                             </div>
                                         </div>
@@ -862,7 +888,7 @@ function ArchitectureShowcase() {
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
-                                    <h5 style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Core Components</h5>
+                                    <h5 style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Core File Dependencies</h5>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                         {currentTab.analysis.files.map((file, i) => (
                                             <div key={i} style={{
@@ -917,9 +943,14 @@ function ArchitectureShowcase() {
                     0% { transform: scale(1); opacity: 0.8; }
                     50% { transform: scale(1.1); opacity: 1; }
                     100% { transform: scale(1); opacity: 0.8; }
+                }
                 @keyframes pulse-ring {
                     0% { transform: scale(0.8); opacity: 0.8; }
                     100% { transform: scale(1.5); opacity: 0; }
+                }
+                @keyframes reveal-step {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
         </div>
