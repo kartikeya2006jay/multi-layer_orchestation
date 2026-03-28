@@ -19,19 +19,54 @@ import wsRoutes from './routes/ws.js';
 const PORT = parseInt(process.env.PORT || '3001');
 const HOST = process.env.HOST || '0.0.0.0';
 
+const colors = {
+    reset: "\x1b[0m",
+    bright: "\x1b[1m",
+    dim: "\x1b[2m",
+    blue: "\x1b[34m",
+    cyan: "\x1b[36m",
+    green: "\x1b[32m",
+    yellow: "\x1b[33m",
+    magenta: "\x1b[35m",
+    red: "\x1b[31m",
+    bgBlue: "\x1b[44m",
+};
+
 async function start() {
+    console.clear();
+    console.log(`
+${colors.cyan}${colors.bright}   ________  _____    __ _________  ___ _    _____________       __
+  / ____/ / / /   |  / //_/ __ \\   | | | |  / /  _/ ____/ |     / /
+ / /   / /_/ / /| | / ,< / /_/ / /| | | | | / // // __/  | | /| / / 
+/ /___/ __  / ___ |/ /| / _, _/ ___ | | | |/ // // /___  | |/ |/ /  
+\\____/_/ /_/_/  |_/_/ |_/_/ |_/_/  |_| |___/___/_____/  |__/|__/   
+${colors.reset}
+${colors.dim}   [ NEURAL CORE ORCHESTRATION ENGINE ] v0.8.2${colors.reset}
+    `);
+
     const fastify = Fastify({
-        logger: {
-            level: 'info',
-        },
+        logger: false, // Disabling default logger for cleaner custom output
     });
 
+    console.log(`${colors.blue}┌── ${colors.bright}SYSTEM INITIALIZATION${colors.reset}`);
+    process.stdout.write(`${colors.blue}│${colors.reset} [DATABASE] Connecting to manifest storage... `);
+
+    try {
+        initializeSchema();
+        process.stdout.write(`${colors.green}CONNECTED ✅${colors.reset}\n`);
+    } catch (e) {
+        process.stdout.write(`${colors.red}FAILED ❌${colors.reset}\n`);
+        console.error(e);
+    }
+
     // Register plugins
+    process.stdout.write(`${colors.blue}│${colors.reset} [SECURITY] Activating JWT & CORS shields... `);
     await fastify.register(cors, { origin: true });
     await fastify.register(websocket);
     await fastify.register(jwt, {
         secret: process.env.JWT_SECRET || 'super-secret-key-change-this-in-production',
     });
+    process.stdout.write(`${colors.green}ACTIVE ✅${colors.reset}\n`);
 
     fastify.decorate('authenticate', async (request, reply) => {
         try {
@@ -41,54 +76,49 @@ async function start() {
         }
     });
 
+    // Register routes
+    const routes = [
+        { name: 'AUTH', r: authRoutes },
+        { name: 'BILLING', r: billingRoutes },
+        { name: 'AGENTS', r: agentsRoutes },
+        { name: 'TASKS', r: tasksRoutes },
+        { name: 'WORKFLOWS', r: workflowsRoutes },
+        { name: 'OVERSIGHT', r: oversightRoutes },
+        { name: 'ANALYTICS', r: dashboardRoutes },
+        { name: 'SETTINGS', r: settingsRoutes },
+        { name: 'AI_LAB', r: aiRoutes },
+        { name: 'NET_SOCKET', r: wsRoutes },
+    ];
+
+    process.stdout.write(`${colors.blue}│${colors.reset} [ROUTING] Mapping neural pathways... \n`);
+    for (const route of routes) {
+        await fastify.register(route.r);
+        process.stdout.write(`${colors.blue}│${colors.reset}   ${colors.dim}↳${colors.reset} ${colors.bright}${route.name.padEnd(12)}${colors.reset} ${colors.green}MAP_OK${colors.reset}\n`);
+    }
+
     fastify.setErrorHandler((error, request, reply) => {
         const statusCode = error.statusCode || (error.message.includes('not found') ? 404 : 400);
-
-        // Log detailed error context
-        console.error(`[CRITICAL ERROR] ${request.method} ${request.url}`);
-        console.error(`Message: ${error.message}`);
-        console.error(`Stack: ${error.stack}`);
-        if (error.validation) console.error(`Validation: ${JSON.stringify(error.validation)}`);
-        if (request.body) console.error(`Body: ${JSON.stringify(request.body)}`);
-
-        if (statusCode === 400) {
-            return reply.code(400).send({
-                error: 'Bad Request',
-                message: error.message,
-                details: error.validation || undefined
-            });
-        }
-
+        console.error(`${colors.red}[CRITICAL ERROR]${colors.reset} ${request.method} ${request.url}`);
         reply.code(statusCode).send({ error: error.message || 'Internal Server Error' });
     });
 
-    // Initialize database
-    initializeSchema();
-
-    // Register routes
-    await fastify.register(authRoutes);
-    await fastify.register(billingRoutes);
-    await fastify.register(agentsRoutes);
-    await fastify.register(tasksRoutes);
-    await fastify.register(workflowsRoutes);
-    await fastify.register(oversightRoutes);
-    await fastify.register(dashboardRoutes);
-    await fastify.register(settingsRoutes);
-    await fastify.register(aiRoutes);
-    await fastify.register(wsRoutes);
-
     fastify.get('/', async () => {
-        return { status: 'running', service: 'Chakraview Neural Core' };
+        return { status: 'running', service: 'Chakraview Neural Core', epoch: Date.now() };
     });
 
-    // Start server
     try {
         const address = await fastify.listen({ port: PORT, host: HOST });
-        console.log(`\n🚀 Chakraview Neural Core running on ${address}`);
-        console.log(`📡 WebSocket available at ws://${HOST}:${PORT}/ws`);
-        console.log(`🔑 OpenAI API: ${process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here' ? 'Configured ✅' : 'Not configured ❌'}\n`);
+        console.log(`${colors.blue}└── ${colors.bright}CORE SYNCHRONIZED${colors.reset}\n`);
+
+        console.log(`${colors.bgBlue}${colors.bright}  OPERATIONAL STATUS  ${colors.reset}`);
+        console.log(`${colors.cyan}● ${colors.bright}API_ENDPOINT:${colors.reset}  ${address}`);
+        console.log(`${colors.cyan}● ${colors.bright}WS_GATEWAY:  ${colors.reset}  ws://${HOST}:${PORT}/ws`);
+        console.log(`${colors.cyan}● ${colors.bright}AI_CONNECT:  ${colors.reset}  ${process.env.OPENAI_API_KEY ? colors.green + 'STABLE ✅' : colors.red + 'DISCONNECTED ❌'}${colors.reset}`);
+        console.log(`${colors.cyan}● ${colors.bright}TIMESTAMP:   ${colors.reset}  ${new Date().toLocaleString()}\n`);
+
+        console.log(`${colors.magenta}${colors.dim}--- CHAKRAVIEW NEURAL CORE IS NOW ORCHESTRATING ---${colors.reset}\n`);
     } catch (err) {
-        console.error('Failed to start server:', err);
+        console.error(`${colors.red}FAILED TO INITIALIZE NEURAL CORE:${colors.reset}`, err);
         process.exit(1);
     }
 }
