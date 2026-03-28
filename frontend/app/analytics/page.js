@@ -123,31 +123,30 @@ export default function AnalyticsPage() {
                     })}
                 </svg>
 
-                <div className="topology-matrix">
-                    <div className="matrix-item">
-                        <div className="matrix-label"><div className="dot blue"></div>SYS.PEAK</div>
-                        <div className="matrix-value">98.2<small>%</small></div>
+                <div className="topology-matrix-wrapper">
+                    <div className="matrix-grid">
+                        {[
+                            { id: 'peak', label: 'SYS.PEAK', value: '98.2', unit: '%', dot: 'blue' },
+                            { id: 'sync', label: 'SYNC.OK', value: '100', unit: '%', dot: 'green' },
+                            { id: 'nodes', label: 'NET.NODES', value: totalAgents, unit: '', dot: 'purple' },
+                            { id: 'active', label: 'OPS.ACTIVE', value: activeAgents, unit: '', dot: 'yellow', highlight: true },
+                            { id: 'latency', label: 'OPS.LATENCY', value: '24', unit: 'ms', dot: 'cyan' },
+                            { id: 'map', label: 'NET.MAP', value: 'v4.2', unit: '', dot: 'blue' }
+                        ].map((item, idx) => (
+                            <div key={item.id} className="matrix-card" style={{ animationDelay: `${idx * 0.05}s` }}>
+                                <div className="card-header-mini">
+                                    <div className={`status-dot-mini ${item.dot}`}></div>
+                                    <span className="label-mini">{item.label}</span>
+                                </div>
+                                <div className={`value-mini ${item.highlight ? 'highlight' : ''}`}>
+                                    <span className="num">{item.value}</span>
+                                    {item.unit && <span className="unit">{item.unit}</span>}
+                                </div>
+                                <div className="card-decoration"></div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="matrix-item">
-                        <div className="matrix-label"><div className="dot green"></div>SYNC.OK</div>
-                        <div className="matrix-value">100<small>%</small></div>
-                    </div>
-                    <div className="matrix-item">
-                        <div className="matrix-label"><div className="dot purple"></div>NET.NODES</div>
-                        <div className="matrix-value">{totalAgents}</div>
-                    </div>
-                    <div className="matrix-item">
-                        <div className="matrix-label"><div className="dot yellow"></div>OPS.ACTIVE</div>
-                        <div className="matrix-value highlight">{activeAgents}</div>
-                    </div>
-                    <div className="matrix-item">
-                        <div className="matrix-label"><div className="dot cyan"></div>OPS.LATENCY</div>
-                        <div className="matrix-value">24<small>ms</small></div>
-                    </div>
-                    <div className="matrix-item">
-                        <div className="matrix-label"><div className="dot blue"></div>NET.MAP</div>
-                        <div className="matrix-value">v4.2</div>
-                    </div>
+                    <div className="topology-scanner"></div>
                 </div>
             </div>
         );
@@ -1194,19 +1193,131 @@ export default function AnalyticsPage() {
                 .score-aplus { color: var(--accent-green); background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); }
                 .score-a { color: var(--accent-blue); background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); }
 
-                /* Neural Status Matrix */
-                .topology-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
-                .matrix-item { display: flex; flex-direction: column; gap: 4px; }
-                .matrix-label { display: flex; align-items: center; gap: 6px; font-size: 8px; font-weight: 950; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
-                .matrix-label .dot { width: 5px; height: 5px; border-radius: 50%; opacity: 0.8; }
-                .matrix-label .dot.blue { background: var(--accent-blue); box-shadow: 0 0 6px var(--accent-blue); }
-                .matrix-label .dot.green { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
-                .matrix-label .dot.purple { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
-                .matrix-label .dot.yellow { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
-                .matrix-label .dot.cyan { background: var(--accent-cyan, #22d3ee); box-shadow: 0 0 6px var(--accent-cyan, #22d3ee); }
-                .matrix-value { font-size: 16px; font-weight: 950; color: #fff; letter-spacing: -0.5px; }
-                .matrix-value small { font-size: 9px; opacity: 0.5; margin-left: 2px; }
-                .matrix-value.highlight { color: var(--accent-blue); text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+                /* Neural Status Matrix Refined */
+                .topology-matrix-wrapper {
+                    width: 100%;
+                    margin-top: 32px;
+                    padding: 2px;
+                    position: relative;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);
+                    border-radius: 16px;
+                    border: 1px solid rgba(255,255,255,0.05);
+                    overflow: hidden;
+                    box-shadow: inset 0 0 40px rgba(0,0,0,0.4);
+                }
+
+                .matrix-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 8px;
+                    padding: 12px;
+                }
+
+                .matrix-card {
+                    background: rgba(13, 15, 23, 0.4);
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.04);
+                    border-radius: 10px;
+                    padding: 12px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                    animation: cardSlideIn 0.6s ease-out forwards;
+                    opacity: 0;
+                }
+
+                @keyframes cardSlideIn {
+                    from { transform: translateY(10px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+
+                .matrix-card:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: rgba(255, 255, 255, 0.1);
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+                }
+
+                .card-header-mini {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+
+                .status-dot-mini {
+                    width: 4px;
+                    height: 4px;
+                    border-radius: 50%;
+                }
+
+                .status-dot-mini.blue { background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
+                .status-dot-mini.green { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+                .status-dot-mini.purple { background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple); }
+                .status-dot-mini.yellow { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+                .status-dot-mini.cyan { background: var(--accent-cyan, #22d3ee); box-shadow: 0 0 8px var(--accent-cyan, #22d3ee); }
+
+                .label-mini {
+                    font-size: 8px;
+                    font-weight: 950;
+                    color: var(--text-muted);
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                    opacity: 0.7;
+                }
+
+                .value-mini {
+                    display: flex;
+                    align-items: baseline;
+                    gap: 2px;
+                }
+
+                .value-mini .num {
+                    font-size: 18px;
+                    font-weight: 950;
+                    color: #fff;
+                    letter-spacing: -0.5px;
+                    font-family: var(--font-mono);
+                }
+
+                .value-mini .unit {
+                    font-size: 10px;
+                    font-weight: 800;
+                    color: var(--text-muted);
+                    opacity: 0.5;
+                }
+
+                .value-mini.highlight .num {
+                    color: var(--accent-blue);
+                    text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+                }
+
+                .card-decoration {
+                    position: absolute;
+                    top: 0; right: 0;
+                    width: 30px; height: 30px;
+                    background: linear-gradient(225deg, rgba(255,255,255,0.03) 0%, transparent 70%);
+                    pointer-events: none;
+                }
+
+                .topology-scanner {
+                    position: absolute;
+                    top: 0; left: 0;
+                    width: 100%; height: 2px;
+                    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+                    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+                    animation: scanVertical 4s linear infinite;
+                    pointer-events: none;
+                }
+
+                @keyframes scanVertical {
+                    0% { top: 0; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { top: 100%; opacity: 0; }
+                }
 
                 /* Animations */
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
