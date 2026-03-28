@@ -5,14 +5,18 @@ import { useWebSocket } from '@/lib/websocket';
 import { formatIST, formatISTDate } from '@/lib/time';
 import { exportToCSV } from '@/lib/export';
 
+import { useAuth } from '@/lib/auth';
+
 export default function AnalyticsPage() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const { subscribe } = useWebSocket();
+    const { user } = useAuth();
 
     const [currentTime, setCurrentTime] = useState(new Date());
 
     const loadStats = useCallback(async () => {
+        if (!user) return;
         try {
             const data = await getDashboardStats();
             setStats(data);
@@ -21,9 +25,10 @@ export default function AnalyticsPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [user]);
 
     useEffect(() => {
+        if (!user) return;
         loadStats();
         const unsub = subscribe('task:update', loadStats);
 
@@ -35,7 +40,9 @@ export default function AnalyticsPage() {
             unsub();
             clearInterval(timer);
         };
-    }, [loadStats, subscribe]);
+    }, [loadStats, subscribe, user]);
+
+    if (!user) return null;
 
     const currentIST = formatIST(currentTime);
     const todayIST = formatISTDate(currentTime);

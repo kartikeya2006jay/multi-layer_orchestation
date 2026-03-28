@@ -96,6 +96,7 @@ export default function DashboardPage() {
     const [currentTime, setCurrentTime] = useState(new Date());
 
     const loadStats = useCallback(async () => {
+        if (!user) return; // Prevent 401 errors when redirected
         try {
             const data = await getDashboardStats();
             setStats(data);
@@ -105,11 +106,12 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [user]);
 
     useEffect(() => { loadStats(); }, [loadStats]);
 
     useEffect(() => {
+        if (!user) return;
         const unsubs = [
             subscribe('task:update', loadStats),
             subscribe('task:created', loadStats),
@@ -118,9 +120,10 @@ export default function DashboardPage() {
             subscribe('oversight:resolved', loadStats),
         ];
         return () => unsubs.forEach(u => u());
-    }, [subscribe, loadStats]);
+    }, [subscribe, loadStats, user]);
 
     useEffect(() => {
+        if (!user) return;
         const interval = setInterval(() => {
             loadStats();
             setCurrentTime(new Date());
@@ -134,7 +137,10 @@ export default function DashboardPage() {
             clearInterval(interval);
             clearInterval(timer);
         };
-    }, [loadStats]);
+    }, [loadStats, user]);
+
+    // If redirected, don't show the dashboard content at all
+    if (!user) return null;
 
     if (loading) {
         return (
