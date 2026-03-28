@@ -1,0 +1,12 @@
+import { getDb } from './src/db/connection.js';
+const db = getDb();
+db.exec('DELETE FROM users');
+db.exec('DELETE FROM workspaces');
+db.exec('DELETE FROM workspace_members');
+db.exec('DELETE FROM agents');
+db.exec('DELETE FROM tasks');
+db.exec('DELETE FROM oversight_queue');
+db.exec('DELETE FROM user_activity_log');
+console.log('--- DATABASE WIPED ---');
+console.log('Ready for first signup as OWNER');
+process.exit(0);
