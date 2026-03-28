@@ -16,6 +16,13 @@ const Icons = {
             <path d="M12 8V4H8" /><rect x="4" y="8" width="16" height="12" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><circle cx="9" cy="14" r="1.5" fill="currentColor" /><circle cx="15" cy="14" r="1.5" fill="currentColor" />
         </svg>
     ),
+    schemas: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
+    ),
     tasks: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -74,6 +81,7 @@ const ChakraLogo = () => (
 
 const navItems = [
     { href: '/', label: 'Overview', icon: 'overview' },
+    { href: '/schemas', label: 'Schemas', icon: 'schemas' },
     { href: '/agents', label: 'Agents', icon: 'agents' },
     { href: '/tasks', label: 'Tasks', icon: 'tasks' },
     { href: '/workflows', label: 'Workflows', icon: 'workflows' },

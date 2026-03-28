@@ -427,9 +427,9 @@ export default function TasksPage() {
                 .metric-icon.blue { color: var(--accent-blue); }
                 .metric-icon.green { color: var(--accent-green); }
                 .metric-icon.purple { color: var(--accent-purple); }
-                .metric-data label { display: block; font-size: 9px; font-weight: 950; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 4px; }
-                .metric-data span { font-size: 24px; font-weight: 950; color: #fff; letter-spacing: -1px; }
-                .metric-data span small { font-size: 10px; color: var(--text-muted); }
+                .metric-data label { display: block; font-size: 11px; font-weight: 950; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 4px; }
+                .metric-data span { font-size: 26px; font-weight: 950; color: #fff; letter-spacing: -1px; }
+                .metric-data span small { font-size: 11px; color: var(--text-muted); }
 
                 .launch-mission-btn { background: var(--accent-blue); border: none; border-radius: 12px; color: #000; font-weight: 950; font-size: 12px; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
                 .launch-mission-btn:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(59, 130, 246, 0.4); }
@@ -437,39 +437,39 @@ export default function TasksPage() {
                 /* Filters */
                 .filters-container { margin-bottom: 32px; }
                 .filter-group { display: flex; gap: 12px; flex-wrap: wrap; }
-                .filter-chip { background: transparent; border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted); padding: 8px 16px; border-radius: 6px; font-size: 10px; font-weight: 950; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; }
+                .filter-chip { background: transparent; border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted); padding: 10px 20px; border-radius: 8px; font-size: 11px; font-weight: 950; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; }
                 .filter-chip:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
-                .filter-chip.active { background: #fff; color: #000; border-color: #fff; }
+                .filter-chip.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 4px 20px rgba(255,255,255,0.1); }
 
                 /* Mission Hub Table */
                 .technical-hub-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; margin-top: -12px; }
-                .technical-hub-table th { text-align: left; font-size: 9px; font-weight: 950; color: var(--text-muted); letter-spacing: 3px; padding: 0 24px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-                .technical-hub-table td { padding: 24px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.03); }
-                .technical-hub-table tr:hover td { background: rgba(255,255,255,0.04); }
-                .technical-hub-table td:first-child { border-radius: 12px 0 0 12px; border-left: 1px solid rgba(255,255,255,0.03); }
-                .technical-hub-table td:last-child { border-radius: 0 12px 12px 0; border-right: 1px solid rgba(255,255,255,0.03); }
+                .technical-hub-table th { text-align: left; font-size: 12px; font-weight: 950; color: var(--text-muted); letter-spacing: 3.5px; padding: 0 28px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+                .technical-hub-table td { padding: 28px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.03); }
+                .technical-hub-table tr:hover td { background: rgba(255,255,255,0.045); }
+                .technical-hub-table td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid rgba(255,255,255,0.03); width: 40%; }
+                .technical-hub-table td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid rgba(255,255,255,0.03); }
 
-                .mission-title { font-size: 13px; font-weight: 900; color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 350px; }
-                .mission-id { font-size: 8px; font-family: var(--font-mono); color: var(--accent-blue); opacity: 0.6; letter-spacing: 1px; }
-                .operative-badge { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); width: fit-content; }
-                .op-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+                .mission-title { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+                .mission-id { font-size: 10px; font-family: var(--font-mono); color: var(--accent-blue); opacity: 0.8; letter-spacing: 1px; }
+                .operative-badge { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: var(--text-secondary); background: rgba(255,255,255,0.03); padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; }
+                .op-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
 
-                .prio-tag { font-size: 8px; font-weight: 950; letter-spacing: 1px; padding: 4px 10px; border-radius: 4px; }
+                .prio-tag { font-size: 10px; font-weight: 950; letter-spacing: 1px; padding: 6px 12px; border-radius: 6px; }
                 .prio-critical { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
                 .prio-high { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
                 .prio-medium { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
 
-                .progress-hub-container { width: 140px; }
-                .progress-hub-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-                .progress-hub-meta span { font-size: 12px; font-family: var(--font-mono); font-weight: 900; color: #fff; }
-                .progress-hub-meta label { font-size: 7px; font-weight: 950; color: var(--text-muted); letter-spacing: 1px; }
-                .progress-hub-bar { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+                .progress-hub-container { width: 180px; }
+                .progress-hub-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+                .progress-hub-meta span { font-size: 14px; font-family: var(--font-mono); font-weight: 900; color: #fff; }
+                .progress-hub-meta label { font-size: 9px; font-weight: 950; color: var(--text-muted); letter-spacing: 1px; }
+                .progress-hub-bar { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
                 .progress-hub-bar .fill { height: 100%; width: 0; background: var(--accent-blue); transition: width 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
                 .progress-hub-bar .fill.fill-completed { background: var(--accent-green); }
                 .progress-hub-bar .fill.fill-failed { background: var(--accent-red); }
 
-                .status-hub-badge { display: flex; align-items: center; gap: 8px; font-size: 9px; font-weight: 950; letter-spacing: 1px; color: var(--text-muted); background: rgba(255,255,255,0.03); padding: 8px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); width: fit-content; }
-                .status-hub-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: #ccc; }
+                .status-hub-badge { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 950; letter-spacing: 1.5px; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 8px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); width: fit-content; }
+                .status-hub-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; }
                 .badge-running { color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); }
                 .badge-running .dot { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); animation: pulse-dot 2s infinite; }
                 .badge-completed { color: var(--accent-green); border-color: rgba(16, 185, 129, 0.2); }
