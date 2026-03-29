@@ -52,7 +52,7 @@ ${colors.dim}   [ NEURAL CORE ORCHESTRATION ENGINE ] v0.8.2${colors.reset}
     process.stdout.write(`${colors.blue}│${colors.reset} [DATABASE] Connecting to manifest storage... `);
 
     try {
-        initializeSchema();
+        await initializeSchema();
         process.stdout.write(`${colors.green}CONNECTED ✅${colors.reset}\n`);
     } catch (e) {
         process.stdout.write(`${colors.red}FAILED ❌${colors.reset}\n`);
@@ -63,8 +63,12 @@ ${colors.dim}   [ NEURAL CORE ORCHESTRATION ENGINE ] v0.8.2${colors.reset}
     process.stdout.write(`${colors.blue}│${colors.reset} [SECURITY] Activating JWT & CORS shields... `);
     await fastify.register(cors, { origin: true });
     await fastify.register(websocket);
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+        process.stdout.write(`${colors.yellow}WARN ⚠️ ${colors.reset} (Using default insecure secret) `);
+    }
     await fastify.register(jwt, {
-        secret: process.env.JWT_SECRET || 'super-secret-key-change-this-in-production',
+        secret: jwtSecret || 'super-secret-key-change-this-in-production',
     });
     process.stdout.write(`${colors.green}ACTIVE ✅${colors.reset}\n`);
 

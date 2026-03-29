@@ -4,7 +4,7 @@ import { launchTask, cancelTask } from '../services/orchestrator.js';
 export default async function tasksRoutes(fastify) {
     // GET all tasks for workspace
     fastify.get('/api/tasks', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const limit = parseInt(request.query.limit) || 50;
         const status = request.query.status;
@@ -25,7 +25,7 @@ export default async function tasksRoutes(fastify) {
 
     // GET single task
     fastify.get('/api/tasks/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const task = db.prepare('SELECT t.*, a.name as agent_name FROM tasks t LEFT JOIN agents a ON t.agent_id = a.id WHERE t.id = ? AND t.workspace_id = ?').get(request.params.id, workspaceId);
@@ -68,7 +68,7 @@ export default async function tasksRoutes(fastify) {
 
     // GET task logs
     fastify.get('/api/tasks/:id/logs', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const task = db.prepare('SELECT id FROM tasks WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);
@@ -80,7 +80,7 @@ export default async function tasksRoutes(fastify) {
 
     // GET task nodes (for graphical visualization)
     fastify.get('/api/tasks/:id/nodes', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const task = db.prepare('SELECT id FROM tasks WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);

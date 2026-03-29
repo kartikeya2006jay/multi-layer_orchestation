@@ -4,7 +4,7 @@ import { broadcast } from '../services/websocket.js';
 export default async function oversightRoutes(fastify) {
     // GET oversight queue for workspace
     fastify.get('/api/oversight/queue', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const status = request.query.status || 'pending';
 
@@ -26,7 +26,7 @@ export default async function oversightRoutes(fastify) {
 
     // POST approve oversight item
     fastify.post('/api/oversight/:id/approve', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const item = db.prepare('SELECT * FROM oversight_queue WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);
@@ -59,7 +59,7 @@ export default async function oversightRoutes(fastify) {
 
     // POST reject oversight item
     fastify.post('/api/oversight/:id/reject', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const item = db.prepare('SELECT * FROM oversight_queue WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);

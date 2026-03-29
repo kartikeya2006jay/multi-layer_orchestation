@@ -1,4 +1,4 @@
-// File: /home/kartikeyayadav/Desktop/multi-layer_orchestation/frontend/app/layout.js
+// File: C:\Users\rice\Documents\abdul\kartikeya-orchestator\frontend\app\layout.js
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

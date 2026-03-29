@@ -5,7 +5,7 @@ import { executeWorkflow } from '../services/orchestrator.js';
 export default async function workflowsRoutes(fastify) {
     // GET all workflows for workspace
     fastify.get('/api/workflows', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const workflows = db.prepare('SELECT * FROM workflows WHERE workspace_id = ? ORDER BY created_at DESC').all(workspaceId);
         return workflows.map(w => ({ ...w, steps: JSON.parse(w.steps || '[]') }));
@@ -13,7 +13,7 @@ export default async function workflowsRoutes(fastify) {
 
     // GET single workflow
     fastify.get('/api/workflows/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const workflow = db.prepare('SELECT * FROM workflows WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);
         if (!workflow) return reply.code(404).send({ error: 'Workflow not found' });
@@ -22,7 +22,7 @@ export default async function workflowsRoutes(fastify) {
 
     // POST create workflow
     fastify.post('/api/workflows', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const { name, description, steps } = request.body;
         const id = uuidv4();
@@ -38,7 +38,7 @@ export default async function workflowsRoutes(fastify) {
 
     // PUT update workflow
     fastify.put('/api/workflows/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const workflow = db.prepare('SELECT * FROM workflows WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);
         if (!workflow) return reply.code(404).send({ error: 'Workflow not found' });
@@ -60,7 +60,7 @@ export default async function workflowsRoutes(fastify) {
 
     // DELETE workflow
     fastify.delete('/api/workflows/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const workflow = db.prepare('SELECT * FROM workflows WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);
         if (!workflow) return reply.code(404).send({ error: 'Workflow not found' });

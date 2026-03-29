@@ -26,7 +26,9 @@ export default function BillingPage() {
 
     if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Optimizing cost engine...</div>;
 
-    const spendPercent = Math.min(100, (usage.usage.cost / usage.limit) * 100);
+    if (!usage || !status) return <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>Failed to load billing data</div>;
+
+    const spendPercent = Math.min(100, (usage.usage?.cost || 0) / (usage.limit || 1) * 100);
 
     return (
         <div className="billing-container">
@@ -120,7 +122,7 @@ export default function BillingPage() {
                             <div className="token-icon">🧠</div>
                             <div className="token-info">
                                 <label>TOKEN_DENSITY_CONSUMED</label>
-                                <span>{Number(usage.usage.tokens).toLocaleString()} CTX</span>
+                                <span>{Number(usage.usage?.tokens || 0).toLocaleString()} CTX</span>
                             </div>
                         </div>
                     </div>
@@ -197,7 +199,7 @@ export default function BillingPage() {
                         EXPORT_STATEMENT
                     </button>
                 </div>
-                {usage.history.length === 0 ? (
+                {(usage.history || []).length === 0 ? (
                     <div className="empty-state">
                         <div className="empty-icon-wrapper">
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
@@ -216,7 +218,7 @@ export default function BillingPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {usage.history.map(log => (
+                                {(usage.history || []).map(log => (
                                     <tr key={log.id}>
                                         <td className="mono">{formatISTDateTime(log.created_at)}</td>
                                         <td className="bold">{log.task_title || 'KERNEL_DIRECT'}</td>

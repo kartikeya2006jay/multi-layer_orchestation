@@ -4,7 +4,7 @@ import { isConfigured } from '../services/openai.js';
 export default async function settingsRoutes(fastify) {
     // GET all settings for workspace
     fastify.get('/api/settings', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const rows = db.prepare('SELECT * FROM settings WHERE workspace_id = ? ORDER BY key').all(workspaceId);
@@ -17,13 +17,13 @@ export default async function settingsRoutes(fastify) {
         if (!settings.oversight_threshold) settings.oversight_threshold = '0.7';
         if (!settings.default_model) settings.default_model = 'gpt-4o-mini';
 
-        settings.openai_configured = !!settings.openai_api_key || isConfigured();
+        settings.openai_configured = !!settings.openai_api_key || await isConfigured(workspaceId);
         return settings;
     });
 
     // PUT update settings
     fastify.put('/api/settings', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const updates = request.body;
 
@@ -55,7 +55,7 @@ export default async function settingsRoutes(fastify) {
         return {
             status: 'ok',
             timestamp: new Date().toISOString(),
-            openai: isConfigured() ? 'configured' : 'not_configured',
+            openai: (await isConfigured()) ? 'configured' : 'not_configured',
         };
     });
 }

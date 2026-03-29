@@ -8,7 +8,7 @@ const runningTasks = new Map();
 
 export async function launchTask({ title, description, input, agentId, priority, workspaceId }) {
     if (!workspaceId) throw new Error('workspaceId is required for launchTask');
-    const db = getDb();
+    const db = await getDb();
     const taskId = uuidv4();
 
     db.prepare(`
@@ -32,7 +32,7 @@ export async function launchTask({ title, description, input, agentId, priority,
 }
 
 export async function cancelTask(taskId, workspaceId) {
-    const db = getDb();
+    const db = await getDb();
     const task = db.prepare('SELECT * FROM tasks WHERE id = ? AND workspace_id = ?').get(taskId, workspaceId);
     if (!task) throw new Error('Task not found');
     if (task.status === 'completed' || task.status === 'failed') {
@@ -55,7 +55,7 @@ export async function executeWorkflow(workflowId, workspaceId) {
         throw new Error('workflowId and workspaceId are required for execution');
     }
 
-    const db = getDb();
+    const db = await getDb();
     let workflow;
 
     try {

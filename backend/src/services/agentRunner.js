@@ -4,7 +4,7 @@ import { chat } from './openai.js';
 import { broadcast } from './websocket.js';
 
 export async function runAgentTask(taskId) {
-    const db = getDb();
+    const db = await getDb();
 
     const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId);
     if (!task) throw new Error(`Task ${taskId} not found`);
@@ -48,7 +48,7 @@ export async function runAgentTask(taskId) {
         db.prepare(`UPDATE agents SET status = 'running', updated_at = datetime('now') WHERE id = ?`).run(agent.id);
     }
 
-    addLog(taskId, 'info', `Agent "${agent?.name || 'Default'}" started processing task`);
+    await addLog(taskId, 'info', `Agent "${agent?.name || 'Default'}" started processing task`);
     broadcast({ type: 'task:update', data: { id: taskId, status: 'running', progress: 10 } });
     upsertNode(nodeIds.init, 'Task Initializer', 'success', task.input || task.description, 'Task parameters validated');
 
@@ -57,7 +57,7 @@ export async function runAgentTask(taskId) {
         upsertNode(nodeIds.planner, 'AI Planner', 'running', 'Analyzing task requirements...', '', JSON.stringify([nodeIds.init]));
         db.prepare('UPDATE tasks SET progress = 30, updated_at = datetime(\'now\') WHERE id = ?').run(taskId);
         broadcast({ type: 'task:update', data: { id: taskId, status: 'running', progress: 30 } });
-        addLog(taskId, 'info', 'Generating execution plan...');
+        await addLog(taskId, 'info', 'Generating execution plan...');
 
         // Simulate planning phase or use OpenAI to "plan" if needed, 
         // for now we just mark it as successful as we proceed to execution
@@ -65,7 +65,7 @@ export async function runAgentTask(taskId) {
 
         // 3. Execution Node
         upsertNode(nodeIds.execution, 'Model Execution', 'running', `Routing to ${model}`, '', JSON.stringify([nodeIds.planner]));
-        addLog(taskId, 'info', `Sending request to ${model}...`);
+        await addLog(taskId, 'info', `Sending request to ${model}...`);
 
         const result = await chat(systemPrompt, task.input || task.description, {
             model,
@@ -84,7 +84,7 @@ export async function runAgentTask(taskId) {
 
         db.prepare('UPDATE tasks SET progress = 70, updated_at = datetime(\'now\') WHERE id = ?').run(taskId);
         broadcast({ type: 'task:update', data: { id: taskId, status: 'running', progress: 70 } });
-        addLog(taskId, 'info', `AI responded (${result.usage?.total_tokens || 0} tokens used)`);
+        await addLog(taskId, 'info', `AI responded (${result.usage?.total_tokens || 0} tokens used)`);
 
         upsertNode(nodeIds.execution, 'Model Execution', 'success', `Input: ${task.input?.slice(0, 50)}...`, `Output generated (${result.usage?.total_tokens} tokens)`, JSON.stringify([nodeIds.planner]));
 
@@ -116,7 +116,7 @@ export async function runAgentTask(taskId) {
 
             upsertNode(nodeIds.final, 'Result Review', 'blocked', 'Confidence check', `Low confidence (${(confidence * 100).toFixed(0)}%) - Sent to Human Oversight`, JSON.stringify([nodeIds.execution]));
 
-            addLog(taskId, 'warn', `Low confidence (${(confidence * 100).toFixed(0)}%) — sent to oversight queue`);
+            await addLog(taskId, 'warn', `Low confidence (${(confidence * 100).toFixed(0)}%) — sent to oversight queue`);
             broadcast({ type: 'task:update', data: { id: taskId, status: 'waiting_for_approval', progress: 90, confidence } });
             broadcast({ type: 'oversight:new', data: { id: oversightId, taskId } });
         } else {
@@ -128,7 +128,7 @@ export async function runAgentTask(taskId) {
 
             upsertNode(nodeIds.final, 'Result Review', 'success', 'Confidence check', `High confidence (${(confidence * 100).toFixed(0)}%) - Completed`, JSON.stringify([nodeIds.execution]));
 
-            addLog(taskId, 'info', `Task completed with ${(confidence * 100).toFixed(0)}% confidence`);
+            await addLog(taskId, 'info', `Task completed with ${(confidence * 100).toFixed(0)}% confidence`);
             broadcast({ type: 'task:update', data: { id: taskId, status: 'completed', progress: 100, confidence } });
         }
 
@@ -157,7 +157,7 @@ export async function runAgentTask(taskId) {
             broadcast({ type: 'agent:update', data: { id: agent.id, status: 'error' } });
         }
 
-        addLog(taskId, 'error', `Task failed: ${error.message}`);
+        await addLog(taskId, 'error', `Task failed: ${error.message}`);
         broadcast({ type: 'task:update', data: { id: taskId, status: 'failed', error: error.message } });
 
         throw error;
@@ -173,8 +173,8 @@ function estimateConfidence(result) {
     return Math.max(0, Math.min(1, confidence));
 }
 
-function addLog(taskId, level, message, metadata = {}) {
-    const db = getDb();
+async function addLog(taskId, level, message, metadata = {}) {
+    const db = await getDb();
     db.prepare('INSERT INTO task_logs (task_id, level, message, metadata) VALUES (?, ?, ?, ?)').run(
         taskId,
         level,

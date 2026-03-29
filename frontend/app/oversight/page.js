@@ -7,6 +7,7 @@ import { formatISTDateTime } from '@/lib/time';
 export default function OversightPage() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [filter, setFilter] = useState('pending');
     const [expandedId, setExpandedId] = useState(null);
     const [notes, setNotes] = useState('');
@@ -14,9 +15,14 @@ export default function OversightPage() {
 
     const loadQueue = useCallback(async () => {
         try {
+            setError(null);
             const data = await getOversightQueue(filter);
-            setItems(data);
-        } catch (e) { console.error(e); }
+            setItems(data || []);
+        } catch (e) { 
+            console.error(e);
+            setError('Failed to load oversight queue');
+            setItems([]);
+        }
         finally { setLoading(false); }
     }, [filter]);
 
@@ -56,6 +62,16 @@ export default function OversightPage() {
                 <div className="loader-core"></div>
             </div>
             <p className="loading-text">Synchronizing Strategic Queue...</p>
+        </div>
+    );
+
+    if (error) return (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#ff6b6b' }}>
+            <h2>Connection Error</h2>
+            <p>{error}</p>
+            <button onClick={loadQueue} style={{ marginTop: '20px', padding: '10px 20px', cursor: 'pointer' }}>
+                Retry Connection
+            </button>
         </div>
     );
 

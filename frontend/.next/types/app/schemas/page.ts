@@ -1,4 +1,4 @@
-// File: /home/kartikeyayadav/Desktop/multi-layer_orchestation/frontend/app/schemas/page.js
+// File: C:\Users\rice\Documents\abdul\kartikeya-orchestator\frontend\app\schemas\page.js
 import * as entry from '../../../../app/schemas/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -1,4 +1,4 @@
-// File: /home/kartikeyayadav/Desktop/multi-layer_orchestation/frontend/app/oversight/page.js
+// File: C:\Users\rice\Documents\abdul\kartikeya-orchestator\frontend\app\oversight\page.js
 import * as entry from '../../../../app/oversight/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

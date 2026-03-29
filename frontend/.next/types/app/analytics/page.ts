@@ -1,4 +1,4 @@
-// File: /home/kartikeyayadav/Desktop/multi-layer_orchestation/frontend/app/analytics/page.js
+// File: C:\Users\rice\Documents\abdul\kartikeya-orchestator\frontend\app\analytics\page.js
 import * as entry from '../../../../app/analytics/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

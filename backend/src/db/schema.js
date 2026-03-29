@@ -1,10 +1,10 @@
-import { getDb } from './connection.js';
+import { getDb, saveDb } from './connection.js';
 
-export function initializeSchema() {
-  const db = getDb();
+export async function initializeSchema() {
+  const db = await getDb();
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
@@ -12,9 +12,8 @@ export function initializeSchema() {
       status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'active', 'suspended')),
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS workspaces (
+    )`,
+    `CREATE TABLE IF NOT EXISTS workspaces (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       owner_id TEXT NOT NULL,
@@ -22,9 +21,8 @@ export function initializeSchema() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (owner_id) REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS workspace_members (
+    )`,
+    `CREATE TABLE IF NOT EXISTS workspace_members (
       workspace_id TEXT NOT NULL,
       user_id TEXT NOT NULL,
       role TEXT DEFAULT 'operator' CHECK(role IN ('owner', 'admin', 'operator', 'viewer')),
@@ -32,9 +30,8 @@ export function initializeSchema() {
       PRIMARY KEY (workspace_id, user_id),
       FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS agents (
+    )`,
+    `CREATE TABLE IF NOT EXISTS agents (
       id TEXT PRIMARY KEY,
       workspace_id TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -48,9 +45,8 @@ export function initializeSchema() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS tasks (
+    )`,
+    `CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
       workspace_id TEXT NOT NULL,
       title TEXT NOT NULL,
@@ -72,9 +68,8 @@ export function initializeSchema() {
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
       FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE SET NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS task_nodes (
+    )`,
+    `CREATE TABLE IF NOT EXISTS task_nodes (
       id TEXT PRIMARY KEY,
       task_id TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -85,9 +80,8 @@ export function initializeSchema() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS workflows (
+    )`,
+    `CREATE TABLE IF NOT EXISTS workflows (
       id TEXT PRIMARY KEY,
       workspace_id TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -98,9 +92,8 @@ export function initializeSchema() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS oversight_queue (
+    )`,
+    `CREATE TABLE IF NOT EXISTS oversight_queue (
       id TEXT PRIMARY KEY,
       workspace_id TEXT NOT NULL,
       task_id TEXT NOT NULL,
@@ -115,9 +108,8 @@ export function initializeSchema() {
       FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
       FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
       FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE SET NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS usage_logs (
+    )`,
+    `CREATE TABLE IF NOT EXISTS usage_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       workspace_id TEXT NOT NULL,
       task_id TEXT,
@@ -125,9 +117,8 @@ export function initializeSchema() {
       cost REAL DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS task_logs (
+    )`,
+    `CREATE TABLE IF NOT EXISTS task_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       task_id TEXT NOT NULL,
       level TEXT DEFAULT 'info' CHECK(level IN ('info', 'warn', 'error', 'debug')),
@@ -135,17 +126,25 @@ export function initializeSchema() {
       metadata TEXT DEFAULT '{}',
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS settings (
+    )`,
+    `CREATE TABLE IF NOT EXISTS settings (
       workspace_id TEXT NOT NULL,
       key TEXT NOT NULL,
       value TEXT NOT NULL,
       updated_at TEXT DEFAULT (datetime('now')),
       PRIMARY KEY (workspace_id, key),
       FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
-    );
-  `);
+    )`
+  ];
 
+  for (const stmt of statements) {
+    try {
+      db.prepare(stmt).run();
+    } catch (err) {
+      console.log(`Statement skipped: ${err.message}`);
+    }
+  }
+
+  saveDb();
   console.log('✅ Database schema initialized');
 }

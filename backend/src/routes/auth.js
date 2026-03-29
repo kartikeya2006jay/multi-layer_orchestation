@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { getDb } from '../db/connection.js';
+import { getDb, saveDb } from '../db/connection.js';
 
 export default async function authRoutes(fastify) {
-    const db = getDb();
+    const db = await getDb();
 
     // Signup Flow
     fastify.post('/api/auth/signup', async (request, reply) => {
@@ -25,40 +25,30 @@ export default async function authRoutes(fastify) {
 
         try {
             // Check if user exists
-            const existingUser = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-            if (existingUser) {
+            const userExists = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+
+            if (userExists) {
                 return reply.code(400).send({ error: 'An account with this email already exists' });
             }
 
             const userId = uuidv4();
             const passwordHash = await bcrypt.hash(password, 10);
 
-            // Using a transaction for atomicity
-            const createAccount = db.transaction(() => {
-                // 1. Create User
-                db.prepare('INSERT INTO users (id, name, email, password_hash, status) VALUES (?, ?, ?, ?, ?)')
-                    .run(userId, name, email, passwordHash, 'active');
+            // 1. Create User
+            db.prepare('INSERT INTO users (id, name, email, password_hash, status) VALUES (?, ?, ?, ?, ?)').run(userId, name, email, passwordHash, 'active');
 
-                // 2. Create Default Workspace
-                const workspaceId = uuidv4();
-                db.prepare('INSERT INTO workspaces (id, name, owner_id, status) VALUES (?, ?, ?, ?)')
-                    .run(workspaceId, `${name}'s Workspace`, userId, 'active');
+            // 2. Create Default Workspace
+            const workspaceId = uuidv4();
+            db.prepare('INSERT INTO workspaces (id, name, owner_id, status) VALUES (?, ?, ?, ?)').run(workspaceId, `${name}'s Workspace`, userId, 'active');
 
-                // 3. Assign User as Owner of Workspace
-                db.prepare('INSERT INTO workspace_members (workspace_id, user_id, role) VALUES (?, ?, ?)')
-                    .run(workspaceId, userId, 'owner');
+            // 3. Assign User as Owner of Workspace
+            db.prepare('INSERT INTO workspace_members (workspace_id, user_id, role) VALUES (?, ?, ?)').run(workspaceId, userId, 'owner');
 
-                // 4. Seed default agent for the new workspace
-                const agentId = uuidv4();
-                db.prepare(`
-                    INSERT INTO agents (id, workspace_id, name, description, system_prompt, model, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                `).run(agentId, workspaceId, 'General Assistant', 'Default workspace agent', 'You are a helpful AI assistant.', 'gpt-4o-mini', 'idle');
+            // 4. Seed default agent for the new workspace
+            const agentId = uuidv4();
+            db.prepare('INSERT INTO agents (id, workspace_id, name, description, system_prompt, model, status) VALUES (?, ?, ?, ?, ?, ?, ?)').run(agentId, workspaceId, 'General Assistant', 'Default workspace agent', 'You are a helpful AI assistant.', 'gpt-4o-mini', 'idle');
 
-                return workspaceId;
-            });
-
-            const workspaceId = createAccount();
+            saveDb();
 
             const token = fastify.jwt.sign({
                 id: userId,
@@ -72,8 +62,9 @@ export default async function authRoutes(fastify) {
                 user: { id: userId, name, email, role: 'owner', workspace_id: workspaceId }
             };
         } catch (error) {
+            console.error('Signup error:', error);
             fastify.log.error(error);
-            return reply.code(500).send({ error: 'Failed to create account. Please try again.' });
+            return reply.code(500).send({ error: `Failed to create account: ${error.message}` });
         }
     });
 
@@ -87,6 +78,7 @@ export default async function authRoutes(fastify) {
 
         try {
             const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+
             if (!user) {
                 return reply.code(401).send({ error: 'Invalid email or password' });
             }
@@ -124,7 +116,7 @@ export default async function authRoutes(fastify) {
     // Me / Profile Flow
     fastify.get('/api/auth/me', { preHandler: [fastify.authenticate] }, async (request, reply) => {
         const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(request.user.id);
-        const membership = db.prepare('SELECT wm.role, w.name as workspace_name, w.id as workspace_id FROM workspace_members wm JOIN workspaces w ON wm.workspace_id = w.id WHERE user_id = ?').get(user.id);
+        const membership = db.prepare('SELECT wm.role, w.name as workspace_name, w.id as workspace_id FROM workspace_members wm JOIN workspaces w ON wm.workspace_id = w.id WHERE wm.user_id = ?').get(user.id);
 
         return {
             user: { ...user, role: membership.role },

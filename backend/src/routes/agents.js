@@ -4,7 +4,7 @@ import { getDb } from '../db/connection.js';
 export default async function agentsRoutes(fastify) {
     // GET all agents for workspace
     fastify.get('/api/agents', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const agents = db.prepare('SELECT * FROM agents WHERE workspace_id = ? ORDER BY created_at DESC').all(workspaceId);
@@ -16,7 +16,7 @@ export default async function agentsRoutes(fastify) {
 
     // GET single agent
     fastify.get('/api/agents/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const agent = db.prepare('SELECT * FROM agents WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);
@@ -26,7 +26,7 @@ export default async function agentsRoutes(fastify) {
 
     // POST create agent
     fastify.post('/api/agents', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
         const { name, description, system_prompt, model, capabilities, max_tokens, temperature } = request.body;
         const id = uuidv4();
@@ -51,7 +51,7 @@ export default async function agentsRoutes(fastify) {
 
     // PUT update agent
     fastify.put('/api/agents/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const agent = db.prepare('SELECT * FROM agents WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);
@@ -90,7 +90,7 @@ export default async function agentsRoutes(fastify) {
 
     // DELETE agent
     fastify.delete('/api/agents/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const agent = db.prepare('SELECT * FROM agents WHERE id = ? AND workspace_id = ?').get(request.params.id, workspaceId);

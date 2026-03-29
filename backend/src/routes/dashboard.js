@@ -5,7 +5,7 @@ import { isConfigured } from '../services/openai.js';
 
 export default async function dashboardRoutes(fastify) {
     fastify.get('/api/dashboard/stats', { preHandler: [fastify.authenticate] }, async (request) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const totalAgents = db.prepare('SELECT COUNT(*) as count FROM agents WHERE workspace_id = ?').get(workspaceId).count;
@@ -75,7 +75,7 @@ export default async function dashboardRoutes(fastify) {
             system: {
                 connectedClients: getConnectedClients(),
                 runningProcesses: getRunningTaskCount(),
-                openaiConfigured: isConfigured(),
+                openaiConfigured: await isConfigured(workspaceId),
                 avgConfidence: avgConfidence?.avg || 0,
                 totalCost: (totalCost || 0).toFixed(2),
             },

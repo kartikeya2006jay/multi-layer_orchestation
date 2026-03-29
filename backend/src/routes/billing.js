@@ -3,7 +3,7 @@ import { getDb } from '../db/connection.js';
 export default async function billingRoutes(fastify) {
     // Billing API: usage tracking, invoices, payment status
     fastify.get('/api/billing/usage', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const db = getDb();
+        const db = await getDb();
         const workspaceId = request.user.workspace_id;
 
         const usage = db.prepare(`

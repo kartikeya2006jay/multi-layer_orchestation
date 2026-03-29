@@ -11,7 +11,7 @@ function adminOnly(fastify) {
 }
 
 export default async function adminRoutes(fastify) {
-    const db = getDb();
+    const db = await getDb();
 
     // ─── Get members of the admin workspace (all employees under owner) ──
     fastify.get('/api/admin/workspace-members', { preHandler: [adminOnly(fastify)] }, async (request) => {

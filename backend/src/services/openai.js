@@ -3,7 +3,7 @@ import { getDb } from '../db/connection.js';
 
 const clients = new Map();
 
-export function getOpenAIClient(workspaceId) {
+export async function getOpenAIClient(workspaceId) {
     // Check if we have a client for this workspace
     if (workspaceId && clients.has(workspaceId)) return clients.get(workspaceId);
 
@@ -11,7 +11,7 @@ export function getOpenAIClient(workspaceId) {
 
     // If workspaceId is provided, check database for override
     if (workspaceId) {
-        const db = getDb();
+        const db = await getDb();
         const setting = db.prepare('SELECT value FROM settings WHERE workspace_id = ? AND key = ?').get(workspaceId, 'openai_api_key');
         if (setting?.value) {
             apiKey = setting.value;
@@ -29,7 +29,7 @@ export function getOpenAIClient(workspaceId) {
 
 export async function chat(systemPrompt, userMessage, options = {}) {
     const { workspaceId, ...rest } = options;
-    const openai = getOpenAIClient(workspaceId);
+    const openai = await getOpenAIClient(workspaceId);
     const model = rest.model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
     const maxTokens = rest.maxTokens || 4096;
     const temperature = rest.temperature ?? 0.7;
@@ -101,9 +101,9 @@ Return a JSON object with:
     }
 }
 
-export function isConfigured(workspaceId) {
+export async function isConfigured(workspaceId) {
     try {
-        getOpenAIClient(workspaceId);
+        await getOpenAIClient(workspaceId);
         return true;
     } catch {
         return false;

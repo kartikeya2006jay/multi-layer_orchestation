@@ -57,6 +57,7 @@ export const launchTask = (data) => request('/api/tasks/launch', { method: 'POST
 export const cancelTask = (id) => request(`/api/tasks/${id}/cancel`, { method: 'POST' });
 export const getTaskLogs = (id) => request(`/api/tasks/${id}/logs`);
 export const getTaskNodes = (id) => request(`/api/tasks/${id}/nodes`);
+export const suggestInput = (title, description) => request('/api/ai/suggest-input', { method: 'POST', body: { title, context: description } });
 
 // Workflows
 export const getWorkflows = () => request('/api/workflows');
@@ -79,3 +80,6 @@ export const getHealth = () => request('/api/health');
 // Billing
 export const getBillingUsage = () => request('/api/billing/usage');
 export const getBillingStatus = () => request('/api/billing/status');
+
+// Generic API request for custom endpoints
+export const apiRequest = (endpoint, options = {}) => request(endpoint, options);
