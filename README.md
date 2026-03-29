@@ -28,7 +28,7 @@
 ## 🎥 Demo
 
 * 🔗 Live App: <https://multi-layer-orchestation.vercel.app/>
-* 🎬 Demo Video: [Watch Demo](demo1.gif)
+![Chakraview Demo](demo1.gif)
 
 ---
 
