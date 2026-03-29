@@ -28,9 +28,7 @@
 ## 🎥 Demo
 
 * 🔗 Live App: <https://multi-layer-orchestation.vercel.app/>
-* 🎬 Demo Video: <your-video-link>
-
-> ⚡ 60-second walkthrough of the system.
+* 🎬 Demo Video: [Watch Demo](demo1.gif)
 
 ---
 
